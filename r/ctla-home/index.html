@@ -1,29 +1,20 @@
 <!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8" />
-  <title>Redirecting…</title>
+<meta charset="utf-8">
+<title>Redirecting…</title>
 
-  <!-- TODAY'S DESTINATION -->
-  <link rel="canonical" href="https://ctlamedica.com" />
+<!-- Today’s destination -->
+<link rel="canonical" href="https://ctlamedica.com">
 
-  <!-- Works even if JavaScript is off -->
-  <meta http-equiv="refresh" content="0; url=https://ctlamedica.com" />
+<!-- Instant redirect that works even if JS is off -->
+<meta http-equiv="refresh" content="0; url=https://ctlamedica.com">
 
-  <!-- Passes along any ?utm= tags from the QR to your site -->
-  <script>
-    (function () {
-      var target = "https://ctlamedica.com";
-      if (location.search && !target.includes('?')) target += location.search;
-      location.replace(target);
-    })();
-  </script>
+<!-- JS redirect + passes along ?utm_... from the QR link -->
+<script>
+  (function () {
+    var target = "https://ctlamedica.com";
+    if (location.search && !target.includes('?')) target += location.search;
+    location.replace(target);
+  })();
+</script>
 
-  <meta name="robots" content="noindex">
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <style>body{font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;padding:24px}</style>
-</head>
-<body>
-  <p>Redirecting to <a href="https://ctlamedica.com">ctlamedica.com</a>…</p>
-</body>
-</html>
+<meta name="robots" content="noindex">
