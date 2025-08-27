@@ -1,20 +1,40 @@
 <!doctype html>
+<html lang="en">
 <meta charset="utf-8">
 <title>Redirecting…</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
 
-<!-- Today’s destination -->
+<!-- Today’s destination (edit this when you want to repoint) -->
 <link rel="canonical" href="https://ctlamedica.com">
 
-<!-- Instant redirect that works even if JS is off -->
+<!-- 0-delay refresh for non-JS environments -->
 <meta http-equiv="refresh" content="0; url=https://ctlamedica.com">
 
-<!-- JS redirect + passes along ?utm_... from the QR link -->
+<!-- Robust JS redirect: preserves existing query (?utm=...) and hash (#section) -->
 <script>
   (function () {
-    var target = "https://ctlamedica.com";
-    if (location.search && !target.includes('?')) target += location.search;
-    location.replace(target);
+    var target = new URL("https://ctlamedica.com");
+
+    // Append incoming search params to target, even if target already has its own
+    var incoming = new URL(window.location.href);
+    incoming.searchParams.forEach(function (v, k) {
+      target.searchParams.append(k, v);
+    });
+
+    // Preserve fragment (#hash) if present
+    if (incoming.hash) target.hash = incoming.hash;
+
+    // Use replace() to avoid cluttering history
+    location.replace(target.toString());
   })();
 </script>
 
-<meta name="robots" content="noindex">
+<!-- Helpful fallback for very old/locked-down clients -->
+<noscript>
+  <meta http-equiv="refresh" content="0; url=https://ctlamedica.com">
+  <p>If you are not redirected automatically, <a href="https://ctlamedica.com">click here</a>.</p>
+</noscript>
+
+<!-- Keep robots out of slug pages -->
+<meta name="robots" content="noindex, nofollow">
+</html>
