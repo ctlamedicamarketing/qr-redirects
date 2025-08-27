@@ -4,37 +4,25 @@
 <title>Redirecting…</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
-<!-- Today’s destination (edit this when you want to repoint) -->
+<!-- Today’s destination (edit when repointing) -->
 <link rel="canonical" href="https://ctlamedica.com">
-
-<!-- 0-delay refresh for non-JS environments -->
 <meta http-equiv="refresh" content="0; url=https://ctlamedica.com">
 
-<!-- Robust JS redirect: preserves existing query (?utm=...) and hash (#section) -->
 <script>
   (function () {
     var target = new URL("https://ctlamedica.com");
-
-    // Append incoming search params to target, even if target already has its own
     var incoming = new URL(window.location.href);
-    incoming.searchParams.forEach(function (v, k) {
-      target.searchParams.append(k, v);
-    });
-
-    // Preserve fragment (#hash) if present
+    incoming.searchParams.forEach(function (v, k) { target.searchParams.append(k, v); });
     if (incoming.hash) target.hash = incoming.hash;
-
-    // Use replace() to avoid cluttering history
     location.replace(target.toString());
   })();
 </script>
 
-<!-- Helpful fallback for very old/locked-down clients -->
 <noscript>
   <meta http-equiv="refresh" content="0; url=https://ctlamedica.com">
   <p>If you are not redirected automatically, <a href="https://ctlamedica.com">click here</a>.</p>
 </noscript>
 
-<!-- Keep robots out of slug pages -->
 <meta name="robots" content="noindex, nofollow">
 </html>
+
