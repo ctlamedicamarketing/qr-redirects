@@ -3,26 +3,82 @@
 <meta charset="utf-8">
 <title>Redirecting…</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
 
-<!-- Today’s destination (edit when repointing) -->
+<!-- Canonical = final destination to avoid SEO weirdness -->
 <link rel="canonical" href="https://ctlamedica.com">
-<meta http-equiv="refresh" content="0; url=https://ctlamedica.com">
+
+<!-- Cache nudges (not guaranteed, but helps on GH Pages) -->
+<meta http-equiv="Cache-Control" content="no-store, max-age=0, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+
+<!-- Immediate meta refresh fallback -->
+<meta http-equiv="refresh" content="0;url=https://ctlamedica.com">
+
+<style>
+  body { font: 16px/1.4 system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; margin: 2rem; }
+  .hint { opacity:.7; font-size:.875rem; }
+</style>
+
+<main>
+  <h1>Redirecting…</h1>
+  <p>If you are not redirected automatically, <a id="link" href="https://ctlamedica.com" rel="external nofollow noopener">click here</a>.</p>
+  <p class="hint">We’ll pass through any UTM parameters and hash (#section) so analytics and anchors still work.</p>
+</main>
 
 <script>
-  (function () {
-    var target = new URL("https://ctlamedica.com");
-    var incoming = new URL(window.location.href);
-    incoming.searchParams.forEach(function (v, k) { target.searchParams.append(k, v); });
-    if (incoming.hash) target.hash = incoming.hash;
-    location.replace(target.toString());
-  })();
+(function () {
+  var DEST = "https://ctlamedica.com";            // <-- edit this when you repoint
+  var ALLOW_PARAMS = [                             // optional allow-list; leave empty to pass all
+    "utm_source","utm_medium","utm_campaign","utm_term","utm_content","gclid","fbclid"
+  ];
+
+  function safeURL(href) {
+    try { return new URL(href); }
+    catch (e) {
+      // Simple fallback for older browsers
+      var a = document.createElement('a');
+      a.href = href;
+      // Construct absolute URL manually
+      return { origin: a.protocol + "//" + a.host, pathname: a.pathname, search: a.search, hash: a.hash,
+               toString: function(){ return this.origin + this.pathname + this.search + this.hash; },
+               searchParams: new URLSearchParams((a.search||"").replace(/^\?/, "")) };
+    }
+  }
+
+  var target = safeURL(DEST);
+  var incoming = safeURL(window.location.href);
+
+  // Merge whitelisted query params (or all, if allow-list is empty)
+  incoming.searchParams.forEach(function (v, k) {
+    if (!ALLOW_PARAMS.length || ALLOW_PARAMS.indexOf(k) !== -1) {
+      target.searchParams.append(k, v);
+    }
+  });
+
+  // Preserve #hash anchors
+  if (incoming.hash) target.hash = incoming.hash;
+
+  // Add cache-buster so stale redirect pages don't linger
+  target.searchParams.append("_r", Date.now().toString(36));
+
+  // Update the visible fallback link to match the computed target
+  var link = document.getElementById("link");
+  if (link) link.href = target.toString();
+
+  // OPTIONAL: tiny analytics ping (fast, privacy-light). Replace URL with your endpoint or GitHub pages form if you have one.
+  // try { navigator.sendBeacon && navigator.sendBeacon("https://example.com/qr-ping", JSON.stringify({slug: location.pathname, t: Date.now()})); } catch(e){}
+
+  // Do the redirect without adding a history entry
+  location.replace(target.toString());
+})();
 </script>
 
 <noscript>
-  <meta http-equiv="refresh" content="0; url=https://ctlamedica.com">
-  <p>If you are not redirected automatically, <a href="https://ctlamedica.com">click here</a>.</p>
+  <!-- No-JS fallback -->
+  <meta http-equiv="refresh" content="0;url=https://ctlamedica.com">
+  <p>If you are not redirected automatically, <a href="https://ctlamedica.com" rel="external nofollow noopener">click here</a>.</p>
 </noscript>
-
-<meta name="robots" content="noindex, nofollow">
 </html>
 
