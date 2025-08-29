@@ -5,20 +5,28 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
 
-<!-- Canonical = final destination to avoid SEO weirdness -->
-<link rel="canonical" href="https://ctlamedica.com">
+<!-- Canonical = final destination base (no UTM) to avoid SEO confusion -->
+<link id="canonical" rel="canonical" href="https://ctlamedica.com" data-dest="https://ctlamedica.com">
 
-<!-- Cache nudges (not guaranteed, but helps on GH Pages) -->
+<!-- Cache nudges (helps on GH Pages; not guaranteed) -->
 <meta http-equiv="Cache-Control" content="no-store, max-age=0, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
 
-<!-- Immediate meta refresh fallback -->
-<meta http-equiv="refresh" content="0;url=https://ctlamedica.com">
+<!-- Lock things down a bit (applies to most modern browsers) -->
+<meta http-equiv="Content-Security-Policy"
+      content="default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline';
+               img-src 'self' data:; base-uri 'none'; form-action 'none';
+               frame-ancestors 'none'; upgrade-insecure-requests">
+
+<!-- Immediate meta refresh fallback for no-JS or overzealous blockers -->
+<meta id="meta-refresh" http-equiv="refresh" content="0;url=https://ctlamedica.com">
 
 <style>
-  body { font: 16px/1.4 system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; margin: 2rem; }
+  :root { color-scheme: light dark; }
+  body { font: 16px/1.45 system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif; margin: 2rem; }
   .hint { opacity:.7; font-size:.875rem; }
+  a { text-underline-offset: .12em; }
 </style>
 
 <main>
@@ -29,44 +37,100 @@
 
 <script>
 (function () {
-  // ---- KNOBS ---------------------------------------------------------------
-  var DEST = "https://ctlamedica.com"; // <-- change this when you repoint
-  // Leave ALLOW_PARAMS empty to pass ALL params through.
-  var ALLOW_PARAMS = ["utm_source","utm_medium","utm_campaign","utm_term","utm_content","gclid","fbclid"];
+  // ================================ KNOBS ===================================
+  // 1) Destination:
+  //    - Prefer data-dest on <link rel="canonical"> so templating tools can swap it
+  //      without touching JS. JS constant falls back if missing.
+  var DEST = "https://ctlamedica.com";
+  var metaCanon = document.getElementById("canonical");
+  if (metaCanon && metaCanon.getAttribute("data-dest")) DEST = metaCanon.getAttribute("data-dest");
 
-  var ADD_CACHE_BUSTER = true;  // set false to stop adding _r= timestamp
-  // -------------------------------------------------------------------------
+  // 2) Parameter pass-through strategy:
+  //    - PASS_MODE: "allow" (only keys in LIST pass) or "deny" (all except keys in LIST pass)
+  //    - LIST: the keys to allow or deny (case-sensitive).
+  var PASS_MODE = "allow";
+  var LIST = ["utm_source","utm_medium","utm_campaign","utm_term","utm_content","gclid","fbclid"];
+
+  // 3) Add cache-buster to target (helps defeat over-cached GH Pages edges)
+  var ADD_CACHE_BUSTER = true; // set to false to disable
+
+  // 4) Optional: detect loops (same origin + same path under /r/) and stop them
+  var LOOP_GUARD = true;
+
+  // 5) Optional private analytics (kept commented by default)
+  // var PING_URL = "https://example.com/qr-ping";
+  // ============================== /KNOBS ====================================
 
   function safeURL(href) {
-    try { return new URL(href); }
-    catch (e) {
-      var a = document.createElement('a');
-      a.href = href;
-      var sp = new URLSearchParams((a.search||"").replace(/^\?/, ""));
-      return {
-        origin: a.protocol + "//" + a.host,
-        pathname: a.pathname,
-        search: a.search,
-        hash: a.hash,
-        searchParams: sp,
-        toString: function(){ return this.origin + this.pathname + (this.searchParams.toString() ? "?"+this.searchParams : "") + (this.hash||""); }
-      };
+    // Try the standard URL parser first
+    try { return new URL(href); } catch (e) {}
+
+    // Fallback for ancient engines
+    var a = document.createElement('a');
+    a.href = href;
+
+    // Minimal URL-like object with URLSearchParams shim:
+    var params = new URLSearchParams((a.search || "").replace(/^\?/, ""));
+    return {
+      protocol: a.protocol,
+      host: a.host,
+      origin: a.protocol + "//" + a.host,
+      pathname: a.pathname || "/",
+      searchParams: params,
+      hash: a.hash || "",
+      toString: function () {
+        var query = this.searchParams.toString();
+        return this.origin + this.pathname + (query ? "?" + query : "") + (this.hash || "");
+      }
+    };
+  }
+
+  function isHttps(u) { return /^https:/i.test(u.protocol || ""); }
+  function isHttpOrHttps(u) { return /^(https?:)/i.test(u.protocol || ""); }
+  function isNaughtyScheme(u) { return !isHttpOrHttps(u); }
+
+  // Normalize and harden DEST
+  var target = safeURL(DEST);
+  if (isNaughtyScheme(target)) {
+    // Failsafe: if DEST were set to something odd like javascript:, bail to site root
+    target = safeURL((location.origin || "") || "https://ctlamedica.com");
+  }
+  // Strip credentials if someone pasted a URL with userinfo
+  try { target.username = ""; target.password = ""; } catch(_) {}
+  // Force https if possible
+  if (!isHttps(target) && target.host) {
+    target = safeURL("https://" + target.host + (target.pathname || "/"));
+  }
+
+  // Gather incoming URL parts
+  var incoming = safeURL(window.location.href);
+
+  // Loop guard: avoid redirecting a stub back onto itself endlessly
+  if (LOOP_GUARD && incoming.origin === target.origin) {
+    // If this redirect page lives under /r/<slug>/ and points back into /r/, stop.
+    if (/\/r\/[^\/]+\/?$/i.test(incoming.pathname) && /^\/r\//i.test(target.pathname || "")) {
+      // Nudge to site root instead
+      target = safeURL(target.origin + "/");
     }
   }
 
-  var target = safeURL(DEST);
-  var incoming = safeURL(window.location.href);
-
-  // Merge whitelisted query params (or all, if allow-list empty)
+  // Merge query params
+  var allow = (PASS_MODE === "allow");
   incoming.searchParams.forEach(function (v, k) {
-    if (!ALLOW_PARAMS.length || ALLOW_PARAMS.indexOf(k) !== -1) {
-      // Use set() to avoid duplicates if DEST already includes the same key
-      if (typeof target.searchParams.set === "function") target.searchParams.set(k, v);
-      else { target.searchParams.delete(k); target.searchParams.append(k, v); }
+    var pass = allow ? (LIST.indexOf(k) !== -1) : (LIST.indexOf(k) === -1);
+    if (!LIST.length) pass = allow ? false : true; // allow-list empty -> pass none; deny-list empty -> pass all
+    if (pass) {
+      // Use set() when available to avoid duplicates if DEST already has the key
+      if (typeof target.searchParams.set === "function") {
+        target.searchParams.set(k, v);
+      } else {
+        target.searchParams.delete(k);
+        target.searchParams.append(k, v);
+      }
     }
   });
 
-  // Preserve #hash anchors (incoming hash wins)
+  // Preserve #hash anchors (incoming wins)
   if (incoming.hash) target.hash = incoming.hash;
 
   // Optional cache-buster
@@ -76,19 +140,25 @@
     else target.searchParams.append("_r", ts);
   }
 
-  // Update fallback link so users without JS still see the right target
+  // Update visible link + meta refresh so no-JS users still land correctly
+  var finalHref = target.toString();
   var link = document.getElementById("link");
-  if (link) link.href = target.toString();
+  if (link) link.href = finalHref;
+  var metaRefresh = document.getElementById("meta-refresh");
+  if (metaRefresh) metaRefresh.setAttribute("content", "0;url=" + finalHref);
+  var canon = document.getElementById("canonical");
+  if (canon) canon.setAttribute("href", target.origin + target.pathname); // canonical without UTMs
 
-  // Optional private analytics ping (disabled by default)
-  // try { navigator.sendBeacon && navigator.sendBeacon("https://example.com/qr-ping", JSON.stringify({slug: location.pathname, t: Date.now()})); } catch(e){}
+  // Optional: private analytics (fire-and-forget)
+  // try { navigator.sendBeacon && navigator.sendBeacon(PING_URL, JSON.stringify({slug: location.pathname, t: Date.now()})); } catch(e){}
 
   // Redirect without adding a history entry
-  location.replace(target.toString());
+  location.replace(finalHref);
 })();
 </script>
 
 <noscript>
+  <!-- Static fallback if JS is disabled -->
   <meta http-equiv="refresh" content="0;url=https://ctlamedica.com">
   <p>If you’re not redirected automatically, <a href="https://ctlamedica.com" rel="external nofollow noopener">click here</a>.</p>
 </noscript>
