@@ -10,17 +10,18 @@
       href="https://api.sherbert.cimpress.io/v2/assets/a60Cn88hkW0SRd4BX_tyg~100?signature=483e109580a85e6e3441aefefbf2fde7c9e2f7a7&showDeleted=false" 
       data-dest="https://api.sherbert.cimpress.io/v2/assets/a60Cn88hkW0SRd4BX_tyg~100?signature=483e109580a85e6e3441aefefbf2fde7c9e2f7a7&showDeleted=false">
 
-<!-- Cache nudges (helps on GH Pages; not guaranteed) -->
+<!-- Cache nudges -->
 <meta http-equiv="Cache-Control" content="no-store, max-age=0, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
 
-<!-- Lock things down a bit (applies to most modern browsers) -->
+<!-- Security -->
 <meta http-equiv="Content-Security-Policy" 
       content="default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; base-uri 'none'; form-action 'none'; frame-ancestors 'none'; upgrade-insecure-requests">
 
-<!-- Immediate meta refresh fallback for no-JS or overzealous blockers -->
-<meta id="meta-refresh" http-equiv="refresh" content="0;url=https://api.sherbert.cimpress.io/v2/assets/a60Cn88hkW0SRd4BX_tyg~100?signature=483e109580a85e6e3441aefefbf2fde7c9e2f7a7&showDeleted=false">
+<!-- Meta refresh fallback -->
+<meta id="meta-refresh" http-equiv="refresh" 
+      content="0;url=https://api.sherbert.cimpress.io/v2/assets/a60Cn88hkW0SRd4BX_tyg~100?signature=483e109580a85e6e3441aefefbf2fde7c9e2f7a7&showDeleted=false">
 
 <style>
   :root { color-scheme: light dark; }
@@ -40,17 +41,18 @@
 
 <script>
 (function () {
-  // ================================ KNOBS ===================================
+  // ================================ DESTINATION ===============================
   var DEST = "https://api.sherbert.cimpress.io/v2/assets/a60Cn88hkW0SRd4BX_tyg~100?signature=483e109580a85e6e3441aefefbf2fde7c9e2f7a7&showDeleted=false";
   var metaCanon = document.getElementById("canonical");
   if (metaCanon && metaCanon.getAttribute("data-dest"))
     DEST = metaCanon.getAttribute("data-dest");
 
+  // Pass-through settings
   var PASS_MODE = "allow";
   var LIST = ["utm_source","utm_medium","utm_campaign","utm_term","utm_content","gclid","fbclid"];
   var ADD_CACHE_BUSTER = true;
   var LOOP_GUARD = true;
-  // ============================== /KNOBS ====================================
+  // ============================================================================
 
   function safeURL(href) {
     try { return new URL(href); } catch (e) {}
@@ -65,26 +67,11 @@
       }
     };
   }
-  function isHttps(u) { return /^https:/i.test(u.protocol || ""); }
-  function isHttpOrHttps(u) { return /^(https?:)/i.test(u.protocol || ""); }
-  function isNaughtyScheme(u) { return !isHttpOrHttps(u); }
 
   var target = safeURL(DEST);
-  if (isNaughtyScheme(target)) {
-    target = safeURL((location.origin || "") || "https://api.sherbert.cimpress.io");
-  }
-  try { target.username = ""; target.password = ""; } catch(_) {}
-  if (!isHttps(target) && target.host) {
-    target = safeURL("https://" + target.host + (target.pathname || "/"));
-  }
-
   var incoming = safeURL(window.location.href);
-  if (LOOP_GUARD && incoming.origin === target.origin) {
-    if (/\/r\/[^\/]+\/?$/i.test(incoming.pathname) && /^\/r\//i.test(target.pathname || "")) {
-      target = safeURL(target.origin + "/");
-    }
-  }
 
+  // Merge query params (only UTM + analytics keys allowed)
   var allow = (PASS_MODE === "allow");
   incoming.searchParams.forEach(function (v, k) {
     var pass = allow ? (LIST.indexOf(k) !== -1) : (LIST.indexOf(k) === -1);
@@ -99,7 +86,10 @@
     }
   });
 
+  // Preserve hash
   if (incoming.hash) target.hash = incoming.hash;
+
+  // Cache buster
   if (ADD_CACHE_BUSTER) {
     var ts = Date.now().toString(36);
     if (typeof target.searchParams.set === "function")
@@ -114,6 +104,7 @@
   var canon = document.getElementById("canonical");
   if (canon) canon.setAttribute("href", target.origin + target.pathname);
 
+  // Do the redirect
   location.replace(finalHref);
 })();
 </script>
