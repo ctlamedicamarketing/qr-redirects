@@ -5,19 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
 
-<!-- Canonical = final destination base (no UTM) to avoid SEO confusion -->
+<!-- Canonical = final destination -->
 <link id="canonical" rel="canonical"
       href="https://api.sherbert.cimpress.io/v2/assets/o4vbX7723_1HGnluj2GkP~100?signature=dc4c2df66fb7c7d6da9e8e3e6769c3c4f98d0d93&showDeleted=false"
       data-dest="https://api.sherbert.cimpress.io/v2/assets/o4vbX7723_1HGnluj2GkP~100?signature=dc4c2df66fb7c7d6da9e8e3e6769c3c4f98d0d93&showDeleted=false">
-
-<!-- Cache nudges -->
-<meta http-equiv="Cache-Control" content="no-store, max-age=0, must-revalidate">
-<meta http-equiv="Pragma" content="no-cache">
-<meta http-equiv="Expires" content="0">
-
-<!-- Security -->
-<meta http-equiv="Content-Security-Policy"
-      content="default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; base-uri 'none'; form-action 'none'; frame-ancestors 'none'; upgrade-insecure-requests">
 
 <!-- Meta refresh fallback -->
 <meta id="meta-refresh" http-equiv="refresh"
@@ -43,29 +34,26 @@
 <script>
 (function () {
   var DEST = "https://api.sherbert.cimpress.io/v2/assets/o4vbX7723_1HGnluj2GkP~100?signature=dc4c2df66fb7c7d6da9e8e3e6769c3c4f98d0d93&showDeleted=false";
-  var metaCanon = document.getElementById("canonical");
-  if (metaCanon && metaCanon.getAttribute("data-dest")) DEST = metaCanon.getAttribute("data-dest");
-
-  // build final target
   var target = new URL(DEST);
   var incoming = new URL(window.location.href);
 
-  // preserve whitelisted params
+  // Optional: preserve marketing params
   var LIST = ["utm_source","utm_medium","utm_campaign","utm_term","utm_content","gclid","fbclid"];
   incoming.searchParams.forEach((v, k) => {
     if (LIST.includes(k)) target.searchParams.set(k, v);
   });
 
-  // preserve hash
+  // Optional: preserve hash
   if (incoming.hash) target.hash = incoming.hash;
 
-  // update fallback links
   var finalHref = target.toString();
+
+  // Update visible link + fallback
   document.getElementById("link").href = finalHref;
   document.getElementById("meta-refresh").setAttribute("content", "0;url=" + finalHref);
   document.getElementById("canonical").setAttribute("href", target.origin + target.pathname);
 
-  // redirect
+  // Redirect
   location.replace(finalHref);
 })();
 </script>
