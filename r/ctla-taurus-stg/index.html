@@ -39,19 +39,15 @@
         href="https://api.sherbert.cimpress.io/v2/assets/H41ALEylCK_sajXDv9jq6~100?signature=407e74ff769435542ea86f24157e95debf45b3d4&showDeleted=false"
         rel="external nofollow noopener">click here</a>.
   </p>
-  <p class="hint">UTM parameters and #hash anchors are preserved for analytics and deep links.</p>
+  <p class="hint">Cache-buster is applied to avoid stuck caching.</p>
 </main>
 
 <script>
 (function () {
   var DEST = "https://api.sherbert.cimpress.io/v2/assets/H41ALEylCK_sajXDv9jq6~100?signature=407e74ff769435542ea86f24157e95debf45b3d4&showDeleted=false";
-  var metaCanon = document.getElementById("canonical");
-  if (metaCanon && metaCanon.getAttribute("data-dest"))
-    DEST = metaCanon.getAttribute("data-dest");
-
   var target = new URL(DEST);
 
-  // Optional: add cache-buster
+  // Add cache-buster
   var ts = Date.now().toString(36);
   target.searchParams.set("_r", ts);
 
@@ -76,3 +72,4 @@
   </p>
 </noscript>
 </html>
+
