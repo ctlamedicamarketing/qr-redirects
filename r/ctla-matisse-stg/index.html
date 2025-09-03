@@ -6,19 +6,18 @@
 <meta name="robots" content="noindex, nofollow">
 
 <!-- Canonical = final destination base (no UTM) to avoid SEO confusion -->
-<link id="canonical" rel="canonical" 
-      href="https://api.sherbert.cimpress.io/v2/assets/uuwYO0817Y4KRA03tWAUg~100?signature=a2c21f13cba8bb225a7579eebfe6e06de8a1930d&showDeleted=false" 
+<link id="canonical" rel="canonical" href="https://api.sherbert.cimpress.io/v2/assets/uuwYO0817Y4KRA03tWAUg~100" 
       data-dest="https://api.sherbert.cimpress.io/v2/assets/uuwYO0817Y4KRA03tWAUg~100?signature=a2c21f13cba8bb225a7579eebfe6e06de8a1930d&showDeleted=false">
 
-<!-- Cache nudges -->
+<!-- Cache nudges (helps on GH Pages; not guaranteed) -->
 <meta http-equiv="Cache-Control" content="no-store, max-age=0, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
 
-<!-- Security -->
+<!-- Lock things down a bit (applies to most modern browsers) -->
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; base-uri 'none'; form-action 'none'; frame-ancestors 'none'; upgrade-insecure-requests">
 
-<!-- Immediate meta refresh fallback -->
+<!-- Immediate meta refresh fallback for no-JS or overzealous blockers -->
 <meta id="meta-refresh" http-equiv="refresh" content="0;url=https://api.sherbert.cimpress.io/v2/assets/uuwYO0817Y4KRA03tWAUg~100?signature=a2c21f13cba8bb225a7579eebfe6e06de8a1930d&showDeleted=false">
 
 <style>
@@ -31,7 +30,8 @@
 <main>
   <h1>Redirecting…</h1>
   <p>If you’re not redirected automatically, 
-    <a id="link" href="https://api.sherbert.cimpress.io/v2/assets/uuwYO0817Y4KRA03tWAUg~100?signature=a2c21f13cba8bb225a7579eebfe6e06de8a1930d&showDeleted=false" rel="external nofollow noopener">click here</a>.
+    <a id="link" href="https://api.sherbert.cimpress.io/v2/assets/uuwYO0817Y4KRA03tWAUg~100?signature=a2c21f13cba8bb225a7579eebfe6e06de8a1930d&showDeleted=false" 
+       rel="external nofollow noopener">click here</a>.
   </p>
   <p class="hint">UTM parameters and #hash anchors are preserved for analytics and deep links.</p>
 </main>
@@ -42,36 +42,63 @@
   var metaCanon = document.getElementById("canonical");
   if (metaCanon && metaCanon.getAttribute("data-dest")) DEST = metaCanon.getAttribute("data-dest");
 
-  // === Parameter pass-through ===
   var PASS_MODE = "allow";
   var LIST = ["utm_source","utm_medium","utm_campaign","utm_term","utm_content","gclid","fbclid"];
   var ADD_CACHE_BUSTER = true;
   var LOOP_GUARD = true;
 
-  function safeURL(href) { try { return new URL(href); } catch (e) { var a = document.createElement('a'); a.href = href; return new URL(a.href); } }
+  function safeURL(href) {
+    try { return new URL(href); } catch (e) {}
+    var a = document.createElement('a'); a.href = href;
+    var params = new URLSearchParams((a.search || "").replace(/^\?/, ""));
+    return {
+      protocol: a.protocol, host: a.host, origin: a.protocol + "//" + a.host,
+      pathname: a.pathname || "/", searchParams: params, hash: a.hash || "",
+      toString: function () {
+        var query = this.searchParams.toString();
+        return this.origin + this.pathname + (query ? "?" + query : "") + (this.hash || "");
+      }
+    };
+  }
+  function isHttps(u) { return /^https:/i.test(u.protocol || ""); }
+  function isHttpOrHttps(u) { return /^(https?:)/i.test(u.protocol || ""); }
+  function isNaughtyScheme(u) { return !isHttpOrHttps(u); }
 
   var target = safeURL(DEST);
-  var incoming = safeURL(window.location.href);
+  if (isNaughtyScheme(target)) target = safeURL((location.origin || "") || "https://ctlamedica.com");
 
-  // Pass through allowed params
+  try { target.username = ""; target.password = ""; } catch(_) {}
+  if (!isHttps(target) && target.host) target = safeURL("https://" + target.host + (target.pathname || "/"));
+
+  var incoming = safeURL(window.location.href);
+  if (LOOP_GUARD && incoming.origin === target.origin) {
+    if (/\/r\/[^\/]+\/?$/i.test(incoming.pathname) && /^\/r\//i.test(target.pathname || "")) {
+      target = safeURL(target.origin + "/");
+    }
+  }
+
+  var allow = (PASS_MODE === "allow");
   incoming.searchParams.forEach(function (v, k) {
-    if (PASS_MODE === "allow" && LIST.indexOf(k) !== -1) target.searchParams.set(k, v);
-    if (PASS_MODE === "deny"  && LIST.indexOf(k) === -1) target.searchParams.set(k, v);
+    var pass = allow ? (LIST.indexOf(k) !== -1) : (LIST.indexOf(k) === -1);
+    if (!LIST.length) pass = allow ? false : true;
+    if (pass) {
+      if (typeof target.searchParams.set === "function") target.searchParams.set(k, v);
+      else { target.searchParams.delete(k); target.searchParams.append(k, v); }
+    }
   });
 
-  // Preserve hash
   if (incoming.hash) target.hash = incoming.hash;
+  if (ADD_CACHE_BUSTER) {
+    var ts = Date.now().toString(36);
+    if (typeof target.searchParams.set === "function") target.searchParams.set("_r", ts);
+    else target.searchParams.append("_r", ts);
+  }
 
-  // Add cache buster
-  if (ADD_CACHE_BUSTER) target.searchParams.set("_r", Date.now().toString(36));
-
-  // Update link + meta refresh
   var finalHref = target.toString();
-  document.getElementById("link").href = finalHref;
-  document.getElementById("meta-refresh").setAttribute("content", "0;url=" + finalHref);
-  document.getElementById("canonical").setAttribute("href", target.origin + target.pathname);
+  var link = document.getElementById("link"); if (link) link.href = finalHref;
+  var metaRefresh = document.getElementById("meta-refresh"); if (metaRefresh) metaRefresh.setAttribute("content", "0;url=" + finalHref);
+  var canon = document.getElementById("canonical"); if (canon) canon.setAttribute("href", target.origin + target.pathname);
 
-  // Redirect
   location.replace(finalHref);
 })();
 </script>
@@ -79,7 +106,8 @@
 <noscript>
   <meta http-equiv="refresh" content="0;url=https://api.sherbert.cimpress.io/v2/assets/uuwYO0817Y4KRA03tWAUg~100?signature=a2c21f13cba8bb225a7579eebfe6e06de8a1930d&showDeleted=false">
   <p>If you’re not redirected automatically, 
-    <a href="https://api.sherbert.cimpress.io/v2/assets/uuwYO0817Y4KRA03tWAUg~100?signature=a2c21f13cba8bb225a7579eebfe6e06de8a1930d&showDeleted=false" rel="external nofollow noopener">click here</a>.
+     <a href="https://api.sherbert.cimpress.io/v2/assets/uuwYO0817Y4KRA03tWAUg~100?signature=a2c21f13cba8bb225a7579eebfe6e06de8a1930d&showDeleted=false" 
+        rel="external nofollow noopener">click here</a>.
   </p>
 </noscript>
 </html>
