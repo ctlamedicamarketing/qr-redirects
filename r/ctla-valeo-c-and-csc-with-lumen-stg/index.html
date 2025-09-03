@@ -5,19 +5,20 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
 
-<!-- Canonical = final destination base (no UTM) to avoid SEO confusion -->
-<link id="canonical" rel="canonical" href="https://api.sherbert.cimpress.io/v2/assets/y1i73uqycxQZGcoeUChbO~100?signature=91aef6534b69a53ef66a3cc66a99b9402c8daf8e&showDeleted=false" 
+<!-- Canonical = final destination base (no UTM) -->
+<link id="canonical" rel="canonical" 
+      href="https://api.sherbert.cimpress.io/v2/assets/y1i73uqycxQZGcoeUChbO~100?signature=91aef6534b69a53ef66a3cc66a99b9402c8daf8e&showDeleted=false" 
       data-dest="https://api.sherbert.cimpress.io/v2/assets/y1i73uqycxQZGcoeUChbO~100?signature=91aef6534b69a53ef66a3cc66a99b9402c8daf8e&showDeleted=false">
 
-<!-- Cache nudges (helps on GH Pages; not guaranteed) -->
+<!-- Cache nudges -->
 <meta http-equiv="Cache-Control" content="no-store, max-age=0, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
 
-<!-- Lock things down a bit (applies to most modern browsers) -->
+<!-- CSP lockdown -->
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; base-uri 'none'; form-action 'none'; frame-ancestors 'none'; upgrade-insecure-requests">
 
-<!-- Immediate meta refresh fallback for no-JS or overzealous blockers -->
+<!-- Meta refresh fallback -->
 <meta id="meta-refresh" http-equiv="refresh" content="0;url=https://api.sherbert.cimpress.io/v2/assets/y1i73uqycxQZGcoeUChbO~100?signature=91aef6534b69a53ef66a3cc66a99b9402c8daf8e&showDeleted=false">
 
 <style>
@@ -30,15 +31,13 @@
 <main>
   <h1>Redirecting…</h1>
   <p>If you’re not redirected automatically, 
-     <a id="link" href="https://api.sherbert.cimpress.io/v2/assets/y1i73uqycxQZGcoeUChbO~100?signature=91aef6534b69a53ef66a3cc66a99b9402c8daf8e&showDeleted=false" 
-        rel="external nofollow noopener">click here</a>.
+     <a id="link" href="https://api.sherbert.cimpress.io/v2/assets/y1i73uqycxQZGcoeUChbO~100?signature=91aef6534b69a53ef66a3cc66a99b9402c8daf8e&showDeleted=false" rel="external nofollow noopener">click here</a>.
   </p>
   <p class="hint">UTM parameters and #hash anchors are preserved for analytics and deep links.</p>
 </main>
 
 <script>
 (function () {
-  // ================================ KNOBS ===================================
   var DEST = "https://api.sherbert.cimpress.io/v2/assets/y1i73uqycxQZGcoeUChbO~100?signature=91aef6534b69a53ef66a3cc66a99b9402c8daf8e&showDeleted=false";
   var metaCanon = document.getElementById("canonical");
   if (metaCanon && metaCanon.getAttribute("data-dest")) DEST = metaCanon.getAttribute("data-dest");
@@ -47,7 +46,6 @@
   var LIST = ["utm_source","utm_medium","utm_campaign","utm_term","utm_content","gclid","fbclid"];
   var ADD_CACHE_BUSTER = true;
   var LOOP_GUARD = true;
-  // ============================== /KNOBS ====================================
 
   function safeURL(href) {
     try { return new URL(href); } catch (e) {}
@@ -56,17 +54,18 @@
     return {
       protocol: a.protocol, host: a.host, origin: a.protocol + "//" + a.host,
       pathname: a.pathname || "/", searchParams: params, hash: a.hash || "",
-      toString: function () { var query = this.searchParams.toString();
-        return this.origin + this.pathname + (query ? "?" + query : "") + (this.hash || ""); }
+      toString: function () {
+        var query = this.searchParams.toString();
+        return this.origin + this.pathname + (query ? "?" + query : "") + (this.hash || "");
+      }
     };
   }
 
   function isHttps(u) { return /^https:/i.test(u.protocol || ""); }
   function isHttpOrHttps(u) { return /^(https?:)/i.test(u.protocol || ""); }
-  function isNaughtyScheme(u) { return !isHttpOrHttps(u); }
 
   var target = safeURL(DEST);
-  if (isNaughtyScheme(target)) target = safeURL((location.origin || ""));
+  if (!isHttpOrHttps(target)) target = safeURL(location.origin || "");
 
   try { target.username = ""; target.password = ""; } catch(_) {}
   if (!isHttps(target) && target.host) target = safeURL("https://" + target.host + (target.pathname || "/"));
