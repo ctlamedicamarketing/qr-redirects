@@ -15,7 +15,7 @@
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
 
-<!-- Lock things down -->
+<!-- Lock things down a bit (applies to most modern browsers) -->
 <meta http-equiv="Content-Security-Policy"
       content="default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline';
                img-src 'self' data:; base-uri 'none'; form-action 'none';
@@ -47,7 +47,8 @@
   // ================================ KNOBS ===================================
   var DEST = "https://api.sherbert.cimpress.io/v2/assets/gdjnbw5JPBU7Fm4vEiIcO~100?signature=c2de6d99d36d7c8b0e17fb7c4835a8fed2d5a72f&showDeleted=false";
   var metaCanon = document.getElementById("canonical");
-  if (metaCanon && metaCanon.getAttribute("data-dest")) DEST = metaCanon.getAttribute("data-dest");
+  if (metaCanon && metaCanon.getAttribute("data-dest"))
+    DEST = metaCanon.getAttribute("data-dest");
 
   var PASS_MODE = "allow";
   var LIST = ["utm_source","utm_medium","utm_campaign","utm_term","utm_content","gclid","fbclid"];
