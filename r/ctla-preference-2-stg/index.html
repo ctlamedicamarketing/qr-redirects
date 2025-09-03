@@ -5,20 +5,20 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
 
-<!-- Canonical = final destination base (no UTM) to avoid SEO confusion -->
+<!-- Canonical = final destination base (no UTM) -->
 <link id="canonical" rel="canonical" 
       href="https://api.sherbert.cimpress.io/v2/assets/QRGBpjkgQNEcdm40ZLgTt~100" 
       data-dest="https://api.sherbert.cimpress.io/v2/assets/QRGBpjkgQNEcdm40ZLgTt~100?signature=5a77a2d4a24221f5e625b7c436536dd197f92e61&showDeleted=false">
 
-<!-- Cache nudges (helps on GH Pages; not guaranteed) -->
+<!-- Cache nudges -->
 <meta http-equiv="Cache-Control" content="no-store, max-age=0, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
 
-<!-- Lock things down a bit (applies to most modern browsers) -->
+<!-- Security -->
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; base-uri 'none'; form-action 'none'; frame-ancestors 'none'; upgrade-insecure-requests">
 
-<!-- Immediate meta refresh fallback for no-JS or overzealous blockers -->
+<!-- Fallback for no-JS -->
 <meta id="meta-refresh" http-equiv="refresh" content="0;url=https://api.sherbert.cimpress.io/v2/assets/QRGBpjkgQNEcdm40ZLgTt~100?signature=5a77a2d4a24221f5e625b7c436536dd197f92e61&showDeleted=false">
 
 <style>
@@ -40,7 +40,6 @@
 
 <script>
 (function () {
-  // ================================ KNOBS ===================================
   var DEST = "https://api.sherbert.cimpress.io/v2/assets/QRGBpjkgQNEcdm40ZLgTt~100?signature=5a77a2d4a24221f5e625b7c436536dd197f92e61&showDeleted=false";
   var metaCanon = document.getElementById("canonical");
   if (metaCanon && metaCanon.getAttribute("data-dest"))
@@ -49,8 +48,6 @@
   var PASS_MODE = "allow";
   var LIST = ["utm_source","utm_medium","utm_campaign","utm_term","utm_content","gclid","fbclid"];
   var ADD_CACHE_BUSTER = true;
-  var LOOP_GUARD = true;
-  // ============================== /KNOBS ====================================
 
   function safeURL(href) {
     try { return new URL(href); } catch (e) {}
@@ -66,39 +63,22 @@
     };
   }
 
-  function isHttps(u) { return /^https:/i.test(u.protocol || ""); }
-  function isHttpOrHttps(u) { return /^(https?:)/i.test(u.protocol || ""); }
-  function isNaughtyScheme(u) { return !isHttpOrHttps(u); }
-
   var target = safeURL(DEST);
-  if (isNaughtyScheme(target)) target = safeURL((location.origin || "") || "https://ctlamedica.com");
-  try { target.username = ""; target.password = ""; } catch(_) {}
-  if (!isHttps(target) && target.host) target = safeURL("https://" + target.host + (target.pathname || "/"));
-
   var incoming = safeURL(window.location.href);
 
-  if (LOOP_GUARD && incoming.origin === target.origin) {
-    if (/\/r\/[^\/]+\/?$/i.test(incoming.pathname) && /^\/r\//i.test(target.pathname || "")) {
-      target = safeURL(target.origin + "/");
-    }
-  }
-
-  var allow = (PASS_MODE === "allow");
+  // Merge query params
   incoming.searchParams.forEach(function (v, k) {
-    var pass = allow ? (LIST.indexOf(k) !== -1) : (LIST.indexOf(k) === -1);
-    if (!LIST.length) pass = allow ? false : true;
+    var pass = (PASS_MODE === "allow") ? (LIST.indexOf(k) !== -1) : (LIST.indexOf(k) === -1);
     if (pass) {
-      if (typeof target.searchParams.set === "function") {
-        target.searchParams.set(k, v);
-      } else {
-        target.searchParams.delete(k);
-        target.searchParams.append(k, v);
-      }
+      if (typeof target.searchParams.set === "function") target.searchParams.set(k, v);
+      else { target.searchParams.delete(k); target.searchParams.append(k, v); }
     }
   });
 
+  // Preserve hash
   if (incoming.hash) target.hash = incoming.hash;
 
+  // Cache buster
   if (ADD_CACHE_BUSTER) {
     var ts = Date.now().toString(36);
     if (typeof target.searchParams.set === "function") target.searchParams.set("_r", ts);
@@ -106,9 +86,9 @@
   }
 
   var finalHref = target.toString();
-  var link = document.getElementById("link"); if (link) link.href = finalHref;
-  var metaRefresh = document.getElementById("meta-refresh"); if (metaRefresh) metaRefresh.setAttribute("content", "0;url=" + finalHref);
-  var canon = document.getElementById("canonical"); if (canon) canon.setAttribute("href", target.origin + target.pathname);
+  document.getElementById("link").href = finalHref;
+  document.getElementById("meta-refresh").setAttribute("content", "0;url=" + finalHref);
+  document.getElementById("canonical").setAttribute("href", target.origin + target.pathname);
 
   location.replace(finalHref);
 })();
@@ -117,7 +97,7 @@
 <noscript>
   <meta http-equiv="refresh" content="0;url=https://api.sherbert.cimpress.io/v2/assets/QRGBpjkgQNEcdm40ZLgTt~100?signature=5a77a2d4a24221f5e625b7c436536dd197f92e61&showDeleted=false">
   <p>If you’re not redirected automatically, 
-     <a href="https://api.sherbert.cimpress.io/v2/assets/QRGBpjkgQNEcdm40ZLgTt~100?signature=5a77a2d4a24221f5e625b7c436536dd197f92e61&showDeleted=false" rel="external nofollow noopener">click here</a>.
+     <a href="https://api.sherbert.cimpress.io/v2/assets/QRGBpjkgQNEcdm40ZLgTt~100?signature=5a77a2d4a24221f5e625b7c436536dd197f92e61&showDeleted=false">click here</a>.
   </p>
 </noscript>
 </html>
