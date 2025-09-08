@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="en">
+  <meta charset="utf-8">
+  <title>Redirecting…</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+
+  <!-- [1] ✱✱ CHANGE HERE: DESTINATION (full target URL) via data-dest ✱✱
+       Put the exact PDF or website URL you want users to land on.
+       Example: https://example.com/files/brochure.pdf
+       Tip: Keep href as the clean base (no UTM) so canonical stays tidy. -->
+  <link id="canonical" rel="canonical"
+        href="https://NEW-BASE-DOMAIN.com"             <!-- ← base only (optional) -->
+        data-dest="https://NEW-DOMAIN.com/PATH/FILE.pdf">  <!-- ← FULL DESTINATION -->
+
+  <!-- Cache nudges (helps on GH Pages; not guaranteed) -->
+  <meta http-equiv="Cache-Control" content="no-store, max-age=0, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+
+  <!-- Lock things down a bit (applies to most modern browsers) -->
+  <meta http-equiv="Content-Security-Policy"
+        content="default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; base-uri 'none'; form-action 'none'; frame-ancestors 'none'; upgrade-insecure-requests">
+
+  <!-- [2] ✱✱ CHANGE HERE: META-REFRESH FALLBACK (no-JS users) ✱✱
+       Must match your FULL DESTINATION above. -->
+  <meta id="meta-refresh" http-equiv="refresh"
+        content="0;url=https://NEW-DOMAIN.com/PATH/FILE.pdf">
+
+  <style>
+    :root { color-scheme: light dark; }
+    body { font: 16px/1.45 system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif; margin: 2rem; }
+    .hint { opacity:.7; font-size:.875rem; }
+    a { text-underline-offset: .12em; }
+  </style>
+
+  <main>
+    <h1>Redirecting…</h1>
+
+    <!-- [3] ✱✱ CHANGE HERE: VISIBLE LINK HREF (manual click fallback) ✱✱
+         Must match your FULL DESTINATION above. -->
+    <p>If you’re not redirected automatically,
+      <a id="link" href="https://NEW-DOMAIN.com/PATH/FILE.pdf"
+         rel="external nofollow noopener">click here</a>.
+    </p>
+
+    <p class="hint">UTM parameters and #hash anchors are preserved for analytics and deep links.</p>
+  </main>
+
+  <script>
+  (function () {
+    // ================================ KNOBS ===================================
+    // [4] ✱✱ CHANGE HERE: JS fallback DEST (used only if data-dest is missing) ✱✱
+    // Put your FULL DESTINATION here as a backup.
+    var DEST = "https://NEW-DOMAIN.com/PATH/FILE.pdf";
+
+    // Use data-dest if present (preferred edit point)
+    var metaCanon = document.getElementById("canonical");
+    if (metaCanon && metaCanon.getAttribute("data-dest")) DEST = metaCanon.getAttribute("data-dest");
+
+    // Parameter pass-through strategy
+    var PASS_MODE = "allow";
+    var LIST = ["utm_source","utm_medium","utm_campaign","utm_term","utm_content","gclid","fbclid"];
+
+    // Add cache-buster to target (helps defeat over-cached GH Pages edges)
+    var ADD_CACHE_BUSTER = true;
+
+    // Optional: detect loops (same origin + same path under /r/) and stop them
+    var LOOP_GUARD = true;
+
+    // var PING_URL = "https://example.com/qr-ping"; // Optional analytics
+    // ============================== /KNOBS ====================================
+
+    function safeURL(href) {
+      try { return new URL(href); } catch (e) {}
+      var a = document.createElement('a'); a.href = href;
+      var params = new URLSearchParams((a.search || "").replace(/^\?/, ""));
+      return {
+        protocol: a.protocol, host: a.host, origin: a.protocol + "//" + a.host,
+        pathname: a.pathname || "/", searchParams: params, hash: a.hash || "",
+        toString: function () {
+          var query = this.searchParams.toString();
+          return this.origin + this.pathname + (query ? "?" + query : "") + (this.hash || "");
+        }
+      };
+    }
+    function isHttps(u) { return /^https:/i.test(u.protocol || ""); }
+    function isHttpOrHttps(u) { return /^(https?:)/i.test(u.protocol || ""); }
+    function isNaughtyScheme(u) { return !isHttpOrHttps(u); }
+
+    // Normalize and harden DEST
+    var target = safeURL(DEST);
+    if (isNaughtyScheme(target)) {
+      // [5] ✱✱ OPTIONAL SAFETY ROOT ✱✱
+      // If DEST is somehow a non-http(s) scheme, fall back to your site root.
+      // You may set a safer default root below (usually your homepage).
+      target = safeURL((location.origin || "") || "https://NEW-BASE-DOMAIN.com");
+    }
+
+    try { target.username = ""; target.password = ""; } catch(_) {}
+
+    // Force https if possible
+    if (!isHttps(target) && target.host) {
+      target = safeURL("https://" + target.host + (target.pathname || "/"));
+    }
+
+    // Gather incoming URL parts
+    var incoming = safeURL(window.location.href);
+
+    // Loop guard
+    if (LOOP_GUARD && incoming.origin === target.origin) {
+      if (/\/r\/[^\/]+\/?$/i.test(incoming.pathname) && /^\/r\//i.test(target.pathname || "")) {
+        target = safeURL(target.origin + "/");
+      }
+    }
+
+    // Merge query params per allow/deny list
+    var allow = (PASS_MODE === "allow");
+    incoming.searchParams.forEach(function (v, k) {
+      var pass = allow ? (LIST.indexOf(k) !== -1) : (LIST.indexOf(k) === -1);
+      if (!LIST.length) pass = allow ? false : true;
+      if (pass) {
+        if (typeof target.searchParams.set === "function") {
+          target.searchParams.set(k, v);
+        } else {
+          target.searchParams.delete(k);
+          target.searchParams.append(k, v);
+        }
+      }
+    });
+
+    // Preserve #hash anchors (incoming wins)
+    if (incoming.hash) target.hash = incoming.hash;
+
+    // Optional cache-buster
+    if (ADD_CACHE_BUSTER) {
+      var ts = Date.now().toString(36);
+      if (typeof target.searchParams.set === "function") target.searchParams.set("_r", ts);
+      else target.searchParams.append("_r", ts);
+    }
+
+    // Update visible link + meta refresh so no-JS users still land correctly
+    var finalHref = target.toString();
+    var link = document.getElementById("link");
+    if (link) link.href = finalHref;
+
+    var metaRefresh = document.getElementById("meta-refresh");
+    if (metaRefresh) metaRefresh.setAttribute("content", "0;url=" + finalHref);
+
+    var canon = document.getElementById("canonical");
+    if (canon) canon.setAttribute("href", target.origin + target.pathname); // canonical without UTMs
+
+    // Optional: private analytics
+    // try { navigator.sendBeacon && navigator.sendBeacon(PING_URL, JSON.stringify({slug: location.pathname, t: Date.now()})); } catch(e){}
+
+    // Redirect without adding a history entry
+    location.replace(finalHref);
+  })();
+  </script>
+
+  <noscript>
+    <!-- [6] ✱✱ CHANGE HERE: <noscript> FALLBACKS ✱✱
+         Match your FULL DESTINATION so users without JS still land correctly. -->
+    <meta http-equiv="refresh" content="0;url=https://NEW-DOMAIN.com/PATH/FILE.pdf">
+    <p>If you’re not redirected automatically,
+      <a href="https://NEW-DOMAIN.com/PATH/FILE.pdf" rel="external nofollow noopener">click here</a>.
+    </p>
+  </noscript>
+</html>
