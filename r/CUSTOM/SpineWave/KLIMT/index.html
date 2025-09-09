@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Video + PDF Viewer</title>
+<meta name="robots" content="noindex, nofollow" />
+<style>
+  :root{
+    --bg:#0b0c10; --ink:#e8eaed; --accent:#ffc81a; --stroke:#1e2330;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%;margin:0;background:var(--bg);color:var(--ink);font:16px/1.4 system-ui,-apple-system,Segoe UI,Roboto,Arial}
+  .wrap{
+    min-height:100%;
+    display:grid;
+    grid-template-rows:auto 1fr;
+    gap:16px;
+    padding:16px;
+  }
+  header{display:flex;gap:12px;align-items:center;justify-content:space-between;border-bottom:1px solid var(--stroke);padding-bottom:8px}
+  header h1{font-size:18px;margin:0;font-weight:600}
+  .grid{
+    display:grid;
+    grid-template-columns: 1fr 2fr; /* video | pdf */
+    gap:16px;
+  }
+  /* stack on narrow screens */
+  @media (max-width:900px){
+    .grid{grid-template-columns:1fr; grid-auto-rows: minmax(240px,auto)}
+  }
+  .card{
+    border:1px solid var(--stroke);
+    border-radius:12px;
+    overflow:hidden;
+    background:linear-gradient(180deg,#0d1019,#0b0f1b);
+    display:flex; flex-direction:column;
+  }
+  .card header{
+    padding:10px 12px; border-bottom:1px solid var(--stroke);
+    display:flex; align-items:center; justify-content:space-between;
+  }
+  .card header h2{font-size:14px;margin:0;font-weight:600;letter-spacing:.02em}
+  .frame{position:relative; aspect-ratio:16/9; width:100%; background:#000}
+  .frame > iframe{position:absolute; inset:0; width:100%; height:100%; border:0}
+  .controls{
+    display:flex; gap:8px; padding:10px 12px; border-top:1px solid var(--stroke);
+  }
+  .controls button{
+    appearance:none; border:1px solid var(--stroke); background:#0f1320; color:var(--ink);
+    padding:8px 10px; border-radius:8px; cursor:pointer; font-weight:600;
+  }
+  .controls button:focus, .controls button:hover{outline:0; border-color:var(--accent)}
+  .hint{opacity:.75; font-size:12px; margin-left:auto}
+  .divider{height:1px; background:var(--stroke); margin:16px 0}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <h1>Embedded YouTube + Multipage PDF</h1>
+    <div class="hint">GitHub Pages friendly · No extra build tools</div>
+  </header>
+
+  <div class="grid">
+
+    <!-- LEFT: LOOPING YOUTUBE -->
+    <section class="card" aria-label="Video">
+      <header><h2>Product Teaser (loops)</h2></header>
+      <div class="frame">
+        <!-- TODO 1: replace VIDEO_ID below -->
+        <iframe
+          id="yt"
+          src="https://www.youtube.com/watch?v=cLHOGWiA6YQ"
+          title="YouTube video" allow="autoplay; encrypted-media; picture-in-picture; web-share"
+          referrerpolicy="strict-origin-when-cross-origin">
+        </iframe>
+      </div>
+      <div class="controls" role="group" aria-label="Video controls">
+        <!-- These are basic; YouTube UI provides the rest -->
+        <button onclick="document.getElementById('yt').contentWindow.postMessage(JSON.stringify({event:'command',func:'playVideo'}),'*')">Play</button>
+        <button onclick="document.getElementById('yt').contentWindow.postMessage(JSON.stringify({event:'command',func:'pauseVideo'}),'*')">Pause</button>
+        <span class="hint">Loop is enforced via <code>loop=1&playlist=VIDEO_ID</code></span>
+      </div>
+    </section>
+
+    <!-- RIGHT: MULTIPAGE PDF (PDF.js viewer) -->
+    <section class="card" aria-label="PDF">
+      <header><h2>Multipage PDF</h2></header>
+      <div class="frame" style="aspect-ratio:auto; flex:1 1 auto;">
+        <!-- We use the hosted PDF.js viewer so you get page thumbnails, search, etc. -->
+        <!-- TODO 2: put your absolute PDF URL in data-pdf -->
+        <iframe id="pdfFrame" title="PDF"
+          src=""
+          referrerpolicy="no-referrer-when-downgrade"></iframe>
+      </div>
+      <div class="controls" role="group" aria-label="PDF page controls">
+        <button id="prevBtn">◀ Prev page</button>
+        <button id="nextBtn">Next page ▶</button>
+        <span class="hint" id="pageLabel">page 1</span>
+      </div>
+    </section>
+
+  </div>
+
+  <div class="divider" aria-hidden="true"></div>
+
+  <!-- Optional third row for helpful links/menu -->
+  <section class="card" aria-label="Links">
+    <header><h2>Quick Links</h2></header>
+    <div class="controls" style="flex-wrap:wrap">
+      <!-- TODO 3: customize these links or remove this section -->
+      <a class="button" href="./" style="text-decoration:none"><button>Home</button></a>
+      <a class="button" href="https://ctlamedica.com" style="text-decoration:none" target="_blank" rel="noopener"><button>CTL Amedica</button></a>
+      <span class="hint">Edit links at the bottom of the file.</span>
+    </div>
+  </section>
+
+</div>
+
+<script>
+  // === Config you tweak in-place ===
+  // TODO 2: set your PDF URL here (absolute URL recommended)
+  const PDF_URL = "https://ctlamedicamarketing.github.io/qr-redirects/r/CUSTOM/SpineWave/KLIMT/KLIMT - TRAINING.pdf"; // <-- change this
+  // Start on page 1; we’ll update the viewer URL hash to jump pages.
+  let currentPage = 1;
+
+  // Build the PDF.js viewer URL (hosted by Mozilla) with your PDF
+  // We encode the PDF URL to survive query-string parsing on their end.
+  const encoded = encodeURIComponent(PDF_URL);
+  const baseViewer = "https://mozilla.github.io/pdf.js/web/viewer.html?file=" + encoded;
+  const baseHash   = "#pagemode=none&zoom=page-fit&page=";
+  const pdfFrame   = document.getElementById('pdfFrame');
+  const pageLabel  = document.getElementById('pageLabel');
+
+  function loadPage(n){
+    currentPage = Math.max(1, n);
+    pdfFrame.src = baseViewer + baseHash + currentPage;
+    pageLabel.textContent = "page " + currentPage;
+  }
+
+  // Buttons just rebuild the iframe URL; no cross-origin access needed.
+  document.getElementById('prevBtn').addEventListener('click', ()=>loadPage(currentPage-1));
+  document.getElementById('nextBtn').addEventListener('click', ()=>loadPage(currentPage+1));
+
+  // Initial load
+  loadPage(currentPage);
+
+  // Enable JS API for YouTube iFrame (so Play/Pause buttons work)
+  (function enableYTAPI(){
+    const yt = document.getElementById('yt');
+    const url = new URL(yt.src);
+    if(!url.searchParams.has('enablejsapi')) {
+      url.searchParams.set('enablejsapi','1');
+      yt.src = url.toString();
+    }
+  })();
+</script>
+</body>
+</html>
