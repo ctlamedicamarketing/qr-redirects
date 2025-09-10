@@ -3,17 +3,26 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
+<!-- EDIT ZONE: Page <title> shown in browser tab -->
 <title>KLIMT Training</title>
 <meta name="robots" content="noindex, nofollow" />
 <style>
-  :root{ --bg:#0b0c10; --ink:#e8eaed; --accent:#ffc81a; --stroke:#1e2330; }
+  /* EDIT ZONE: Branding colors (optional) */
+  :root{
+    --bg:#0b0c10; --ink:#e8eaed; --accent:#ffc81a; --stroke:#1e2330;
+  }
+
   *{box-sizing:border-box}
   html,body{height:100%;margin:0;background:var(--bg);color:var(--ink);font:16px/1.4 system-ui,-apple-system,Segoe UI,Roboto,Arial}
+
   .wrap{min-height:100%;display:grid;grid-template-rows:auto auto 1fr;gap:16px;padding:16px}
+
   header{display:flex;gap:12px;align-items:center;justify-content:space-between;border-bottom:1px solid var(--stroke);padding-bottom:8px}
+  /* EDIT ZONE: Header title text (optional; also see <h1> below) */
   header h1{font-size:18px;margin:0;font-weight:600}
   .top-right{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
   .hint{opacity:.75;font-size:12px}
+
   .tabs{display:flex;gap:8px;border-bottom:1px solid var(--stroke);padding-bottom:8px;flex-wrap:wrap}
   .tabs button{
     appearance:none;cursor:pointer;font-weight:600;
@@ -21,41 +30,48 @@
     background:#0f1320;color:var(--ink)
   }
   .tabs button[aria-selected="true"]{border-color:var(--accent);background:linear-gradient(180deg,#12182a,#0c1120)}
+
   .grid{display:grid;grid-template-columns:1fr 2fr;gap:16px}
   @media (max-width:900px){.grid{grid-template-columns:1fr;grid-auto-rows:minmax(240px,auto)}}
+
   .card{border:1px solid var(--stroke);border-radius:12px;overflow:hidden;background:linear-gradient(180deg,#0d1019,#0b0f1b);display:flex;flex-direction:column}
   .card header{padding:10px 12px;border-bottom:1px solid var(--stroke);display:flex;align-items:center;justify-content:space-between}
   .card header h2{font-size:14px;margin:0;font-weight:600;letter-spacing:.02em}
+
   .frame{position:relative;aspect-ratio:16/9;width:100%;background:#000}
   .frame > iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+
   .controls{display:flex;gap:8px;padding:10px 12px;border-top:1px solid var(--stroke);flex-wrap:wrap}
   .controls button{
     appearance:none;border:1px solid var(--stroke);background:#0f1320;color:var(--ink);
     padding:8px 10px;border-radius:8px;cursor:pointer;font-weight:600
   }
   .controls button:focus,.controls button:hover{outline:0;border-color:var(--accent)}
-  a.button{ text-decoration:none }
-  a.button > button{ /* reuse button styling */
+  a.button{text-decoration:none}
+  a.button > button{
     appearance:none;border:1px solid var(--stroke);background:#0f1320;color:var(--ink);
     padding:8px 10px;border-radius:8px;cursor:pointer;font-weight:600
   }
   a.button > button:focus,a.button > button:hover{outline:0;border-color:var(--accent)}
+
   .divider{height:1px;background:var(--stroke);margin:16px 0}
 </style>
 </head>
 <body>
 <div class="wrap">
 
-  <!-- Header + Top Quick Links -->
+  <!-- EDIT ZONE: Page header text -->
   <header>
     <h1>Embedded YouTube + Multipage PDFs</h1>
+
+    <!-- EDIT ZONE: TOP QUICK LINKS (auto-fills with PDF buttons too) -->
     <div class="top-right">
       <nav id="topDocLinks" aria-label="PDF quick links"></nav>
       <span class="hint">GitHub Pages friendly · No build tools</span>
     </div>
   </header>
 
-  <!-- PDF Tabs -->
+  <!-- PDF Tabs (auto-generated from DOCS array below) -->
   <nav class="tabs" id="tabs" role="tablist" aria-label="PDF Tabs"></nav>
 
   <div class="grid">
@@ -63,9 +79,10 @@
     <section class="card" aria-label="Video">
       <header><h2>Product Teaser (loops)</h2></header>
       <div class="frame">
+        <!-- The src is built from YT_VIDEO_ID + options in the script (EDIT ZONE #2) -->
         <iframe
           id="yt"
-          src="https://www.youtube.com/embed/cLHOGWiA6YQ?enablejsapi=1&loop=1&playlist=cLHOGWiA6YQ&autoplay=1&mute=1&controls=1&modestbranding=1&rel=0&playsinline=1"
+          src=""
           title="YouTube video"
           allow="autoplay; encrypted-media; picture-in-picture; web-share"
           allowfullscreen
@@ -76,7 +93,7 @@
       <div class="controls" role="group" aria-label="Video controls">
         <button onclick="postYT('playVideo')">Play</button>
         <button onclick="postYT('pauseVideo')">Pause</button>
-        <span class="hint">Loop via <code>loop=1&playlist=cLHOGWiA6YQ</code></span>
+        <span class="hint" id="ytHint"></span>
       </div>
     </section>
 
@@ -96,88 +113,130 @@
 
   <div class="divider" aria-hidden="true"></div>
 
-  <!-- Optional lower quick links -->
+  <!-- BOTTOM QUICK LINKS (optional) -->
   <section class="card" aria-label="Links">
     <header><h2>Quick Links</h2></header>
-    <div class="controls" style="flex-wrap:wrap">
+    <div class="controls" style="flex-wrap:wrap" id="bottomLinks">
+      <!-- Populated below; you can also add permanent links here -->
       <a class="button" href="./"><button>Home</button></a>
       <a class="button" href="https://ctlamedica.com" target="_blank" rel="noopener"><button>CTL Amedica</button></a>
-      <!-- Auto-injected PDF links will also appear up top -->
-      <span class="hint">Edit DOCS array in the script to change PDFs.</span>
+      <span class="hint">Edit DOCS & YouTube in the script.</span>
     </div>
   </section>
 
 </div>
 
 <script>
-  // ====== 1) Define your PDFs here (add/remove as needed) ======
+  /******************************************************************
+   * EDIT ZONE #1 — PDF TABS / QUICK LINKS
+   * - Add a new object { slug, title, url } for each PDF you want.
+   * - slug: short, unique ID (lowercase, hyphens OK). Used in #doc=…
+   * - title: button/tab label.
+   * - url: absolute or relative URL to the PDF file.
+   *
+   * Deep link example: page.html#doc=klimt-training&page=3
+   ******************************************************************/
   const DOCS = [
     {
       slug: 'klimt-training',
-      title: 'KLIMT Training',
-      url: 'https://ctlamedicamarketing.github.io/qr-redirects/r/CUSTOM/SpineWave/KLIMT/KLIMT - TRAINING.pdf'
+      title: 'KLIMT – TRAINING',
+      url: 'https://ctlamedicamarketing.github.io/qr-redirects/r/CUSTOM-SpineWave/KLIMT/pdfs/KLIMT - TRAINING.pdf'
     },
     {
-      slug: 'mondrian-alif',
-      title: 'MONDRIAN ALIF Overview',
-      url: 'https://example.com/path/to/MONDRIAN-ALIF.pdf' // TODO: replace
+      slug: 'klimt-stg-367003-0904',
+      title: 'KLIMT STG.367.003 — 09.04',
+      url: 'https://ctlamedicamarketing.github.io/qr-redirects/r/CUSTOM-SpineWave/KLIMT/pdfs/KLIMT STG.367.003 - 09.04.pdf'
     },
     {
-      slug: 'monet-guide',
-      title: 'MONET Surgical Guide',
-      url: 'https://example.com/path/to/MONET-GUIDE.pdf' // TODO: replace
+      slug: 'klimt-expansion-table-and-tips',
+      title: 'Klimt Expansion Table & Tips',
+      url: 'https://ctlamedicamarketing.github.io/qr-redirects/r/CUSTOM-SpineWave/KLIMT/pdfs/Klimt Expansion table and Tips.pdf'
+    },
+    {
+      slug: 'klimt-expansion-table',
+      title: 'Klimt Expansion Table',
+      url: 'https://ctlamedicamarketing.github.io/qr-redirects/r/CUSTOM-SpineWave/KLIMT/pdfs/Klimt Expansion table.pdf'
     }
   ];
 
-  // ====== 2) State & elements ======
+  /******************************************************************
+   * EDIT ZONE #2 — YOUTUBE VIDEO
+   * - Replace YT_VIDEO_ID with your YouTube ID (the part after v=).
+   *   Example: https://www.youtube.com/watch?v=cLHOGWiA6YQ → "cLHOGWiA6YQ"
+   * - Toggle options in YT_OPTS as needed.
+   * - Loop needs playlist=VIDEO_ID to loop a single video.
+   ******************************************************************/
+  const YT_VIDEO_ID = 'cLHOGWiA6YQ'; // ← replace with new ID if needed
+  const YT_OPTS = {
+    enablejsapi: 1,
+    loop: 1,
+    playlist: YT_VIDEO_ID,  // keep this set to the same ID for single-video loop
+    autoplay: 1,
+    mute: 1,                // autoplay usually requires mute=1
+    controls: 1,
+    modestbranding: 1,
+    rel: 0,                 // related videos from same channel
+    playsinline: 1
+  };
+
+  // ====== State & DOM ======
   let currentDoc = DOCS[0];
   let currentPage = 1;
-  const tabs     = document.getElementById('tabs');
-  const pdfFrame = document.getElementById('pdfFrame');
-  const pageLabel= document.getElementById('pageLabel');
-  const pdfTitle = document.getElementById('pdfTitle');
-  const topDocLinks = document.getElementById('topDocLinks');
 
-  // ====== 3) Helpers ======
+  const tabs         = document.getElementById('tabs');
+  const topDocLinks  = document.getElementById('topDocLinks');
+  const bottomLinks  = document.getElementById('bottomLinks');
+  const pdfFrame     = document.getElementById('pdfFrame');
+  const pageLabel    = document.getElementById('pageLabel');
+  const pdfTitle     = document.getElementById('pdfTitle');
+  const ytIframe     = document.getElementById('yt');
+  const ytHint       = document.getElementById('ytHint');
+
+  // ====== Helpers ======
   const viewerURL = (pdfUrl, page) => {
     const enc = encodeURIComponent(pdfUrl);
     return `https://mozilla.github.io/pdf.js/web/viewer.html?file=${enc}#pagemode=none&zoom=page-fit&page=${Math.max(1, page|0)}`;
   };
 
+  function buildYTEmbed(videoId, opts){
+    const params = new URLSearchParams();
+    for (const [k,v] of Object.entries(opts)) params.set(k, String(v));
+    return `https://www.youtube.com/embed/${videoId}?${params.toString()}`;
+  }
+
   function setHash(slug, page=1){
     const params = new URLSearchParams({ doc: slug, page: String(Math.max(1,page)) });
-    // Don’t trigger extra scroll by using replace if same
     if (location.hash.slice(1) !== params.toString()){
       location.hash = params.toString();
     } else {
-      applyFromHash(); // manual apply if unchanged (e.g., first set)
+      applyFromHash();
     }
   }
+
   function parseHash(){
     const q = new URLSearchParams(location.hash.slice(1));
-    const slug = q.get('doc');
+    const slug = q.get('doc') || DOCS[0].slug;
     const page = parseInt(q.get('page') || '1', 10);
     return { slug, page: Number.isFinite(page) ? Math.max(1,page) : 1 };
   }
 
   function applyFromHash(){
     const { slug, page } = parseHash();
-    const found = DOCS.find(d => d.slug === (slug || DOCS[0].slug)) || DOCS[0];
+    const found = DOCS.find(d => d.slug === slug) || DOCS[0];
     currentDoc  = found;
-    currentPage = page || 1;
+    currentPage = page;
 
-    // Update viewer + UI
     pdfFrame.src = viewerURL(currentDoc.url, currentPage);
     pageLabel.textContent = `${currentDoc.title} — page ${currentPage}`;
     pdfTitle.textContent  = currentDoc.title;
 
-    // Update tabs aria-selected
+    // Tab selection
     [...tabs.querySelectorAll('button[role="tab"]')].forEach(btn=>{
       btn.setAttribute('aria-selected', String(btn.dataset.slug === currentDoc.slug));
     });
   }
 
-  // ====== 4) Build tabs & top quick links ======
+  // Build tabs from DOCS
   function renderTabs(){
     tabs.innerHTML = '';
     DOCS.forEach((d,i)=>{
@@ -192,48 +251,49 @@
     });
   }
 
+  // Top PDF quick links (also include Home / CTL)
   function renderTopLinks(){
-    // Top quick links: Home / CTL + per-PDF deep links
     topDocLinks.innerHTML = '';
     const group = document.createElement('div');
     group.className = 'controls';
-    group.style.padding = '0'; // tighter in header
+    group.style.padding = '0';
 
-    // Static links (optional)
-    const home = document.createElement('a');
-    home.className = 'button';
-    home.href = './';
-    home.innerHTML = '<button>Home</button>';
-    group.appendChild(home);
+    // Permanent links you can modify or remove
+    // EDIT ZONE (optional): change/remove these two
+    group.appendChild(makeButtonLink('./', 'Home'));
+    group.appendChild(makeButtonLink('https://ctlamedica.com', 'CTL Amedica', true));
 
-    const ctl = document.createElement('a');
-    ctl.className = 'button';
-    ctl.href = 'https://ctlamedica.com';
-    ctl.target = '_blank';
-    ctl.rel = 'noopener';
-    ctl.innerHTML = '<button>CTL Amedica</button>';
-    group.appendChild(ctl);
-
-    // Divider-ish hint
     const label = document.createElement('span');
     label.className = 'hint';
     label.style.margin = '0 8px';
     label.textContent = 'PDFs:';
     group.appendChild(label);
 
-    // Per-PDF quick links
     DOCS.forEach(d=>{
-      const a = document.createElement('a');
-      a.className = 'button';
-      a.href = `#doc=${encodeURIComponent(d.slug)}&page=1`;
-      a.innerHTML = `<button>${d.title}</button>`;
-      group.appendChild(a);
+      group.appendChild(makeButtonLink(`#doc=${encodeURIComponent(d.slug)}&page=1`, d.title));
     });
 
     topDocLinks.appendChild(group);
   }
 
-  // ====== 5) Wire controls ======
+  // Bottom PDF quick links (optional duplication for convenience)
+  function renderBottomPDFLinks(){
+    // Append PDF buttons after existing Home/CTL
+    DOCS.forEach(d=>{
+      bottomLinks.appendChild(makeButtonLink(`#doc=${encodeURIComponent(d.slug)}&page=1`, d.title));
+    });
+  }
+
+  function makeButtonLink(href, label, external=false){
+    const a = document.createElement('a');
+    a.className = 'button';
+    a.href = href;
+    if (external){ a.target = '_blank'; a.rel = 'noopener'; }
+    a.innerHTML = `<button>${label}</button>`;
+    return a;
+  }
+
+  // Wire PDF controls
   document.getElementById('prevBtn').addEventListener('click', ()=>{
     setHash(currentDoc.slug, Math.max(1, currentPage - 1));
   });
@@ -242,27 +302,33 @@
   });
   window.addEventListener('hashchange', applyFromHash);
 
-  // YouTube play/pause helper
+  // YouTube postMessage helper
   function postYT(func){
-    document.getElementById('yt')
-      .contentWindow
-      .postMessage(JSON.stringify({event:'command',func}), '*');
+    ytIframe.contentWindow.postMessage(JSON.stringify({event:'command',func}), '*');
   }
-  // Ensure JS API on the YT iframe
-  (function ensureYTAPI(){
-    const yt = document.getElementById('yt');
-    const url = new URL(yt.src);
-    if(!url.searchParams.has('enablejsapi')){
-      url.searchParams.set('enablejsapi','1');
-      yt.src = url.toString();
-    }
-  })();
+  window.postYT = postYT; // expose for inline onclick
 
-  // ====== 6) Boot ======
-  renderTabs();
-  renderTopLinks();
-  // Initialize from hash or default
-  if (!location.hash) setHash(DOCS[0].slug, 1); else applyFromHash();
+  // Boot
+  (function init(){
+    // Build tabs and quick links
+    renderTabs();
+    renderTopLinks();
+    renderBottomPDFLinks();
+
+    // Init YouTube embed
+    ytIframe.src = buildYTEmbed(YT_VIDEO_ID, YT_OPTS);
+    ytHint.textContent = `Loop via playlist=${YT_VIDEO_ID} (autoplay ${YT_OPTS.autoplay ? 'on' : 'off'}, mute ${YT_OPTS.mute ? 'on' : 'off'})`;
+
+    // Ensure JS API remains on even if src modified later
+    const url = new URL(ytIframe.src);
+    if (!url.searchParams.has('enablejsapi')){
+      url.searchParams.set('enablejsapi','1');
+      ytIframe.src = url.toString();
+    }
+
+    // Load a document (from hash or default)
+    if (!location.hash) setHash(DOCS[0].slug, 1); else applyFromHash();
+  })();
 </script>
 </body>
 </html>
