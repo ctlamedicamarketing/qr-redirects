@@ -3,118 +3,153 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Embedded YouTube + Multipage PDFs</title>
+<title>KLIMT • Video + PDFs</title>
 <meta name="robots" content="noindex, nofollow" />
 <style>
-  :root{ --bg:#0b0c10; --ink:#e8eaed; --accent:#ffc81a; --stroke:#1e2330; }
-  *{ box-sizing:border-box }
-  html,body{ height:100%; margin:0; background:var(--bg); color:var(--ink);
-             font:16px/1.4 system-ui,-apple-system,Segoe UI,Roboto,Arial }
-  .wrap{ min-height:100%; display:grid; grid-template-rows:auto 1fr; gap:16px; padding:16px; }
-  header{ display:flex; gap:12px; align-items:center; justify-content:space-between;
-          border-bottom:1px solid var(--stroke); padding-bottom:8px }
-  header h1{ font-size:18px; margin:0; font-weight:600 }
-  .grid{ display:grid; grid-template-columns:1fr 2fr; gap:16px; }
-  @media (max-width:900px){ .grid{ grid-template-columns:1fr; grid-auto-rows:minmax(240px,auto) } }
-  .card{ border:1px solid var(--stroke); border-radius:12px; overflow:hidden;
-         background:linear-gradient(180deg,#0d1019,#0b0f1b); display:flex; flex-direction:column; }
-  .card header{ padding:10px 12px; border-bottom:1px solid var(--stroke);
-                display:flex; align-items:center; justify-content:space-between; }
-  .card header h2{ font-size:14px; margin:0; font-weight:600; letter-spacing:.02em }
-  .frame{ position:relative; aspect-ratio:16/9; width:100%; background:#000 }
-  .frame > iframe{ position:absolute; inset:0; width:100%; height:100%; border:0 }
-  .controls{ display:flex; gap:8px; padding:10px 12px; border-top:1px solid var(--stroke); flex-wrap:wrap; }
-  .btn, .controls button{
-    appearance:none; border:1px solid var(--stroke); background:#0f1320; color:var(--ink);
-    padding:8px 10px; border-radius:8px; cursor:pointer; font-weight:600; text-decoration:none; display:inline-flex; align-items:center;
+  :root{
+    --bg:#0b0c10; --panel:#0d111a; --ink:#e8eaed; --muted:#9aa0a6;
+    --stroke:#1e2330; --accent:#ffc81a;
   }
-  .btn:focus, .btn:hover, .controls button:focus, .controls button:hover{ outline:0; border-color:var(--accent) }
-  .hint{ opacity:.75; font-size:12px; margin-left:auto }
-  .chipbar{ display:flex; gap:8px; padding:12px 12px 0 12px; flex-wrap:wrap; }
-  .chip{ border:1px solid var(--stroke); border-radius:999px; padding:6px 10px; text-decoration:none; color:var(--ink); }
-  .chip:hover{ border-color:var(--accent) }
-  .divider{ height:1px; background:var(--stroke); margin:16px 0 }
+  *{box-sizing:border-box}
+  html,body{height:100%;margin:0;background:var(--bg);color:var(--ink);
+            font:15px/1.45 system-ui,-apple-system,Segoe UI,Roboto,Arial}
+  a{color:var(--ink)}
+  .wrap{min-height:100%;display:grid;grid-template-rows:auto 1fr auto;gap:16px;max-width:1200px;margin:0 auto;padding:16px}
+  header.app{display:flex;gap:10px;align-items:center;justify-content:space-between;padding-bottom:8px;border-bottom:1px solid var(--stroke)}
+  header.app h1{margin:0;font-size:18px;font-weight:700;letter-spacing:.02em}
+  .nav{display:flex;gap:8px}
+  .btn{appearance:none;border:1px solid var(--stroke);background:linear-gradient(180deg,#0f1320,#0b0f1b);
+       color:var(--ink);padding:8px 12px;border-radius:10px;cursor:pointer;font-weight:600;text-decoration:none}
+  .btn:hover{border-color:var(--accent)}
+  .grid{display:grid;grid-template-columns:1fr 1.4fr;gap:16px}
+  @media (max-width:980px){.grid{grid-template-columns:1fr}}
+  .card{background:var(--panel);border:1px solid var(--stroke);border-radius:14px;overflow:hidden;display:flex;flex-direction:column}
+  .card .head{display:flex;align-items:center;gap:10px;justify-content:space-between;padding:12px;border-bottom:1px solid var(--stroke)}
+  .card .head h2{margin:0;font-size:14px;font-weight:700}
+  .frame{position:relative;aspect-ratio:16/9;width:100%;background:#000}
+  .frame > iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+  .bar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:10px 12px;border-top:1px solid var(--stroke)}
+  .seg{display:inline-flex;border:1px solid var(--stroke);border-radius:10px;overflow:hidden}
+  .seg button{background:#0f1320;color:var(--ink);border:0;padding:7px 10px;font-weight:600;cursor:pointer}
+  .seg button.active{background:#141823}
+  .pill{display:inline-flex;gap:8px;align-items:center;border:1px solid var(--stroke);background:#0f1320;border-radius:999px;padding:6px 10px}
+  .muted{color:var(--muted)}
+  .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  select, input[type="number"]{background:#0f1320;color:var(--ink);border:1px solid var(--stroke);border-radius:8px;padding:7px 10px}
+  .chips{display:flex;flex-wrap:wrap;gap:8px;padding:10px 12px}
+  .chip{border:1px solid var(--stroke);background:#0f1320;border-radius:999px;padding:6px 10px;cursor:pointer}
+  .chip.active,.chip:hover{border-color:var(--accent)}
+  details.debug{padding:8px 12px;border-top:1px dashed var(--stroke);font-size:12px;color:var(--muted)}
+  footer{display:flex;justify-content:space-between;gap:10px;align-items:center;padding-top:8px;border-top:1px solid var(--stroke)}
 </style>
 </head>
 <body>
 <div class="wrap">
 
-  <!-- Top header: just Home + CTL -->
-  <header>
-    <h1>Embedded YouTube + Multipage PDFs</h1>
-    <nav class="controls" style="border:none;padding:0">
+  <!-- Top -->
+  <header class="app">
+    <h1>KLIMT — Video & Documents</h1>
+    <nav class="nav">
       <a class="btn" href="../">Home</a>
       <a class="btn" href="https://ctlamedica.com" target="_blank" rel="noopener">CTL Amedica</a>
     </nav>
   </header>
 
+  <!-- Main -->
   <div class="grid">
 
-    <!-- LEFT: LOOPING YOUTUBE -->
+    <!-- Left: YouTube -->
     <section class="card" aria-label="Video">
-      <header><h2>Product Teaser (loops)</h2></header>
+      <div class="head"><h2>Product Teaser</h2></div>
       <div class="frame">
-        <iframe id="yt" title="YouTube video"
-          allow="autoplay; encrypted-media; picture-in-picture; web-share"
-          allowfullscreen loading="lazy" referrerpolicy="strict-origin-when-cross-origin"></iframe>
+        <iframe id="yt" title="YouTube video" allow="autoplay; encrypted-media; picture-in-picture; web-share"
+                allowfullscreen loading="lazy" referrerpolicy="strict-origin-when-cross-origin"></iframe>
       </div>
-      <div class="controls" role="group" aria-label="Video controls">
-        <button id="playBtn">Play</button>
-        <button id="pauseBtn">Pause</button>
-        <span class="hint">Loop via <code>loop=1&playlist=VIDEO_ID</code> (autoplay on, muted)</span>
-      </div>
-    </section>
-
-    <!-- RIGHT: NATIVE PDF VIEWER -->
-    <section class="card" aria-label="PDF">
-      <header><h2 id="docTitle">Document</h2></header>
-
-      <!-- PDF chips (auto-generated from DOCS) -->
-      <div id="chipbar" class="chipbar"></div>
-
-      <div class="frame" style="aspect-ratio:auto; flex:1 1 auto;">
-        <iframe id="pdfFrame" title="PDF" loading="lazy"
-          referrerpolicy="no-referrer-when-downgrade"></iframe>
-      </div>
-      <div class="controls" role="group" aria-label="PDF page controls">
-        <button id="prevBtn">◀ Prev page</button>
-        <button id="nextBtn">Next page ▶</button>
-        <span class="hint" id="pageLabel">page 1</span>
+      <div class="bar">
+        <div class="row">
+          <button id="playBtn" class="btn">Play</button>
+          <button id="pauseBtn" class="btn">Pause</button>
+        </div>
+        <span class="muted">Loops via <code>loop=1&playlist=VIDEO_ID</code></span>
       </div>
     </section>
 
+    <!-- Right: PDFs -->
+    <section class="card" aria-label="Documents">
+      <div class="head">
+        <h2 id="docTitle">Document</h2>
+        <div class="row">
+          <div class="seg" role="tablist" aria-label="Viewer mode">
+            <button id="modeAuto"   class="active" title="Prefer PDF.js">Auto</button>
+            <button id="modePdfjs"              title="Force PDF.js">PDF.js</button>
+            <button id="modeNative"             title="Browser viewer">Native</button>
+          </div>
+          <a id="openTab" class="btn" target="_blank" rel="noopener">Open</a>
+        </div>
+      </div>
+
+      <!-- Document chooser: chips for desktop, select for mobile -->
+      <div class="chips" id="chips"></div>
+      <div class="bar">
+        <label class="pill">
+          <span>Document</span>
+          <select id="docSelect" aria-label="Choose document"></select>
+        </label>
+        <label class="pill">
+          <span>Page</span>
+          <input id="pageInput" type="number" min="1" step="1" value="1" style="width:80px" />
+          <button id="goBtn" class="btn">Go</button>
+        </label>
+        <div class="row">
+          <button id="prevBtn" class="btn">◀ Prev</button>
+          <button id="nextBtn" class="btn">Next ▶</button>
+        </div>
+        <span class="muted" id="modeHint">Auto (PDF.js preferred)</span>
+      </div>
+
+      <div class="frame" style="aspect-ratio:auto;min-height:420px;flex:1 1 auto;background:#0a0d14">
+        <iframe id="pdfFrame" title="PDF" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+      </div>
+
+      <details class="debug" id="debug">
+        <summary>Debug links</summary>
+        <div id="debugBody">Ready.</div>
+      </details>
+    </section>
   </div>
 
-  <div class="divider" aria-hidden="true"></div>
-
-  <!-- Bottom Quick Links -->
-  <section class="card" aria-label="Links">
-    <header><h2>Quick Links</h2></header>
-    <div class="controls">
+  <!-- Bottom -->
+  <footer>
+    <div class="muted">Tip: Click “Native” if PDF.js is missing; it will still render.</div>
+    <div class="row">
       <a class="btn" href="../">Home</a>
       <a class="btn" href="https://ctlamedica.com" target="_blank" rel="noopener">CTL Amedica</a>
-      <span class="hint">Edit DOCS & YouTube in the script.</span>
     </div>
-  </section>
-
+  </footer>
 </div>
 
 <script>
-  // ======== CONFIG ========
-  const YT_ID = "cLHOGWiA6YQ"; // <- change to your video ID
+  /* ========= CONFIG (edit these) ========= */
+  const YT_ID = "cLHOGWiA6YQ";
 
-  // Keep PDFs in the SAME FOLDER as this index.html.
-  // Edit labels/paths here (paths can have spaces & em-dashes).
-  const DOCS = [
-    { key:"klimt-training",           label:"KLIMT – TRAINING",                 path:"./KLIMT - TRAINING.pdf" },
-    { key:"klimt-stg-367003-0904",    label:"KLIMT STG.367.003 — 09.04",       path:"./KLIMT STG.367.003 — 09.04.pdf" },
-    { key:"klimt-expansion-tips",     label:"Klimt Expansion Table & Tips",    path:"./Klimt Expansion Table & Tips.pdf" },
-    { key:"klimt-expansion-table",    label:"Klimt Expansion Table",           path:"./Klimt Expansion Table.pdf" }
+  // Option 2: viewer lives next to this page inside vendor/pdfjs/web/
+  // (We also keep a site-root fallback in case you later add a global copy.)
+  const VIEWER_CANDIDATES = [
+    "vendor/pdfjs/web/viewer.html",                 // ./vendor/pdfjs/web/viewer.html
+    "/qr-redirects/vendor/pdfjs/web/viewer.html"    // optional global fallback
   ];
-  const DEFAULT_KEY = "klimt-training";
-  // ========================
 
-  // ---- YouTube embed with loop + JS API ----
+  // PDFs in the SAME folder as this HTML file (case-sensitive)
+  const DOCS = [
+    { key:"klimt-stg",                      label:"KLIMT STG",                    path:"KLIMT-STG.pdf" },
+    { key:"klimt-expansion-table-and-tips", label:"Klimt Expansion Table & Tips", path:"Klimt-Expansion-table-and-Tips.pdf" },
+    { key:"klimt-expansion-table",          label:"Klimt Expansion Table",        path:"Klimt-Expansion-table.pdf" }
+  ];
+  const ALIASES = { "klimt-training":"klimt-stg", "klimt-stg-367003-0904":"klimt-stg" };
+  const DEFAULT_KEY = "klimt-stg";
+  /* ====================================== */
+
+  // YouTube
   (function initYouTube(){
     const yt = document.getElementById('yt');
     const origin = location.origin;
@@ -123,67 +158,184 @@
       playsinline:'1', loop:'1', playlist:YT_ID, enablejsapi:'1', origin
     });
     yt.src = `https://www.youtube.com/embed/${YT_ID}?` + params.toString();
-
-    const post = (func)=> yt.contentWindow.postMessage(
-      JSON.stringify({ event:'command', func }), '*'
-    );
+    const post = (func)=> yt.contentWindow?.postMessage(JSON.stringify({event:'command', func}),'*');
     document.getElementById('playBtn').addEventListener('click', ()=>post('playVideo'));
     document.getElementById('pauseBtn').addEventListener('click',()=>post('pauseVideo'));
   })();
 
-  // ---- PDF (native viewer) + hash routing (#doc=…&page=…) ----
-  const pdfFrame  = document.getElementById("pdfFrame");
-  const pageLabel = document.getElementById("pageLabel");
-  const docTitle  = document.getElementById("docTitle");
-  const chipbar   = document.getElementById("chipbar");
+  // PDF viewer
+  const els = {
+    pdfFrame:  document.getElementById("pdfFrame"),
+    docTitle:  document.getElementById("docTitle"),
+    modeHint:  document.getElementById("modeHint"),
+    openTab:   document.getElementById("openTab"),
+    docSelect: document.getElementById("docSelect"),
+    chips:     document.getElementById("chips"),
+    pageInput: document.getElementById("pageInput"),
+    debugBody: document.getElementById("debugBody"),
+    modeBtns: {
+      auto:   document.getElementById("modeAuto"),
+      pdfjs:  document.getElementById("modePdfjs"),
+      native: document.getElementById("modeNative")
+    },
+    prevBtn: document.getElementById("prevBtn"),
+    nextBtn: document.getElementById("nextBtn"),
+    goBtn:   document.getElementById("goBtn"),
+  };
 
-  // Build chips from DOCS
-  DOCS.forEach(d=>{
-    const a = document.createElement('a');
-    a.className = 'chip';
-    a.textContent = d.label;
-    a.href = `#doc=${encodeURIComponent(d.key)}&page=1`;
-    chipbar.appendChild(a);
-  });
-
-  function getHash(name, fallback){
+  const encodePath = p => p.split('/').map(encodeURIComponent).join('/');
+  const getHash = (name, fallback)=>{
     const params = new URLSearchParams(location.hash.slice(1));
     return params.get(name) ?? fallback;
+  };
+  const setHash = (key, page)=>{
+    const params = new URLSearchParams(location.hash.slice(1));
+    params.set("doc", key);
+    params.set("page", String(page));
+    location.hash = params.toString();
+  };
+
+  let currentDocKey = DEFAULT_KEY;
+  let currentPage   = 1;
+  let viewMode      = 'auto';
+  let viewerPath    = null; // resolved candidate or null
+
+  // Build document chips + select
+  function populateDocs(){
+    DOCS.forEach(d=>{
+      const opt = document.createElement("option");
+      opt.value = d.key; opt.textContent = d.label;
+      els.docSelect.appendChild(opt);
+
+      const c = document.createElement("button");
+      c.className = "chip";
+      c.textContent = d.label;
+      c.addEventListener("click", ()=>setHash(d.key, 1));
+      els.chips.appendChild(c);
+    });
   }
 
-  let currentPage = 1;
-  let currentDoc  = DEFAULT_KEY;
+  function markActiveChip(){
+    [...els.chips.children].forEach(n=>n.classList.toggle("active", n.textContent===resolveDoc(currentDocKey).label));
+  }
 
   function resolveDoc(key){
-    return DOCS.find(d => d.key === key) || DOCS.find(d => d.key === DEFAULT_KEY);
+    return DOCS.find(d=>d.key===key) || DOCS.find(d=>d.key===DEFAULT_KEY);
   }
 
-  function loadPage(n){
-    currentPage = Math.max(1, n);
-    const doc = resolveDoc(currentDoc);
-    // encodeURI keeps slashes, encodes spaces/unicode safely
-    const encodedPath = encodeURI(doc.path);
-    pdfFrame.src = `${encodedPath}#page=${currentPage}&zoom=page-fit`;
-    pageLabel.textContent = `page ${currentPage}`;
-    docTitle.textContent  = doc.label;
+  function buildNativeSrc(path, page){
+    return `${encodePath(path)}#page=${page}&zoom=page-fit`;
+  }
+
+  // Option 2: build absolute file URL from THIS PAGE'S directory (prevents // and folder mismatches)
+  function buildPdfjsSrc(viewer, path, page){
+    const baseDir = location.origin + location.pathname.replace(/[^/]*$/, ''); // this page's folder
+    const fileURL = baseDir + encodePath(path);
+    return `${viewer}?file=${encodeURIComponent(fileURL)}#pagemode=none&zoom=page-fit&page=${page}`;
+  }
+
+  function debug(html){
+    els.debugBody.innerHTML = html;
+  }
+
+  async function headOk(url){
+    try{
+      const res = await fetch(url, {method:'HEAD', cache:'no-store'});
+      return res.ok;
+    }catch{ return false; }
+  }
+
+  async function resolveViewer(){
+    if (viewerPath !== null) return viewerPath;
+    for (const cand of VIEWER_CANDIDATES){
+      const abs = new URL(cand, location.href).toString();
+      if (await headOk(abs)){ viewerPath = cand; return viewerPath; }
+    }
+    viewerPath = null;
+    return null;
+  }
+
+  function updateModeButtons(){
+    Object.entries(els.modeBtns).forEach(([k,btn])=>{
+      btn.classList.toggle('active', k===viewMode || (viewMode==='auto' && k==='auto'));
+    });
+    els.modeHint.textContent =
+      viewMode==='native' ? 'Native mode' :
+      viewMode==='pdfjs'  ? 'PDF.js mode' :
+                            'Auto (PDF.js preferred)';
+  }
+
+  async function loadPage(page){
+    currentPage = Math.max(1, Number(page)||1);
+    const doc   = resolveDoc(currentDocKey);
+
+    // PDF existence
+    const absPdf = new URL(doc.path, location.href).toString();
+    const ok = await headOk(absPdf);
+    if (!ok){
+      els.pdfFrame.src = "about:blank";
+      els.docTitle.textContent = doc.label;
+      debug(`❌ PDF not found: <code>${doc.path}</code><br>
+             Tried: <a href="${absPdf}" target="_blank" rel="noopener">${absPdf}</a><br>
+             Check filename/case & that it lives next to this page.`);
+      updateModeButtons();
+      return;
+    }
+
+    // Decide mode
+    let modeToUse = viewMode;
+    if (viewMode==='auto'){
+      modeToUse = (await resolveViewer()) ? 'pdfjs' : 'native';
+    }
+
+    // Build URLs
+    const direct = encodePath(doc.path);
+    let src;
+    if (modeToUse==='pdfjs'){
+      const vp = await resolveViewer();
+      src = buildPdfjsSrc(vp, doc.path, currentPage);
+      els.openTab.href = src;
+    } else {
+      src = buildNativeSrc(doc.path, currentPage);
+      els.openTab.href = direct;
+    }
+
+    // Apply
+    els.pdfFrame.src = src;
+    els.docTitle.textContent = doc.label;
+    els.docSelect.value = doc.key;
+    els.pageInput.value = String(currentPage);
+    markActiveChip();
+
+    const viewerResolved = viewerPath ? new URL(viewerPath, location.href).toString() : '—';
+    debug(`Mode: <b>${modeToUse}</b><br>
+           Viewer: ${viewerPath ? `<a href="${viewerResolved}" target="_blank" rel="noopener">${viewerResolved}</a>` : '—'}<br>
+           Iframe: <a href="${src}" target="_blank" rel="noopener">${src}</a><br>
+           Direct: <a href="${absPdf}" target="_blank" rel="noopener">${absPdf}</a>`);
+    updateModeButtons();
   }
 
   function applyFromHash(){
-    const key  = decodeURIComponent(getHash("doc", DEFAULT_KEY));
+    const raw  = decodeURIComponent(getHash("doc", DEFAULT_KEY));
+    const key  = ALIASES[raw] || raw;
     const page = parseInt(getHash("page", "1"), 10) || 1;
-    currentDoc  = key;
-    currentPage = Math.max(1, page);
+    currentDocKey = key;
+    currentPage   = Math.max(1, page);
     loadPage(currentPage);
   }
 
-  // Wire buttons
-  document.getElementById("prevBtn").addEventListener("click", ()=>loadPage(currentPage-1));
-  document.getElementById("nextBtn").addEventListener("click", ()=>loadPage(currentPage+1));
+  // Wire UI
+  populateDocs();
+  document.getElementById("modeAuto").addEventListener('click', ()=>{ viewMode='auto';   loadPage(currentPage); });
+  document.getElementById("modePdfjs").addEventListener('click',()=>{ viewMode='pdfjs';  loadPage(currentPage); });
+  document.getElementById("modeNative").addEventListener('click',()=>{ viewMode='native';loadPage(currentPage); });
 
-  // React to hash changes (clicking chips)
+  els.prevBtn.addEventListener('click', ()=> setHash(currentDocKey, Math.max(1, currentPage-1)));
+  els.nextBtn.addEventListener('click', ()=> setHash(currentDocKey, currentPage+1));
+  els.goBtn  .addEventListener('click', ()=> setHash(currentDocKey, Math.max(1, parseInt(els.pageInput.value||"1",10))));
+  els.docSelect.addEventListener('change', e=> setHash(e.target.value, 1));
+
   window.addEventListener('hashchange', applyFromHash);
-
-  // Initial load
   applyFromHash();
 </script>
 </body>
