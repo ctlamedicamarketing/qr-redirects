@@ -6,70 +6,63 @@
 <title>KLIMT Training</title>
 <meta name="robots" content="noindex, nofollow" />
 <style>
-  :root{
-    --bg:#0b0c10; --ink:#e8eaed; --accent:#ffc81a; --stroke:#1e2330;
-  }
+  :root{ --bg:#0b0c10; --ink:#e8eaed; --accent:#ffc81a; --stroke:#1e2330; }
   *{box-sizing:border-box}
   html,body{height:100%;margin:0;background:var(--bg);color:var(--ink);font:16px/1.4 system-ui,-apple-system,Segoe UI,Roboto,Arial}
-  .wrap{
-    min-height:100%;
-    display:grid;
-    grid-template-rows:auto 1fr;
-    gap:16px;
-    padding:16px;
-  }
+  .wrap{min-height:100%;display:grid;grid-template-rows:auto auto 1fr;gap:16px;padding:16px}
   header{display:flex;gap:12px;align-items:center;justify-content:space-between;border-bottom:1px solid var(--stroke);padding-bottom:8px}
   header h1{font-size:18px;margin:0;font-weight:600}
-  .grid{
-    display:grid;
-    grid-template-columns: 1fr 2fr; /* video | pdf */
-    gap:16px;
+  .top-right{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+  .hint{opacity:.75;font-size:12px}
+  .tabs{display:flex;gap:8px;border-bottom:1px solid var(--stroke);padding-bottom:8px;flex-wrap:wrap}
+  .tabs button{
+    appearance:none;cursor:pointer;font-weight:600;
+    padding:8px 12px;border-radius:8px 8px 0 0;border:1px solid var(--stroke);
+    background:#0f1320;color:var(--ink)
   }
-  /* stack on narrow screens */
-  @media (max-width:900px){
-    .grid{grid-template-columns:1fr; grid-auto-rows: minmax(240px,auto)}
-  }
-  .card{
-    border:1px solid var(--stroke);
-    border-radius:12px;
-    overflow:hidden;
-    background:linear-gradient(180deg,#0d1019,#0b0f1b);
-    display:flex; flex-direction:column;
-  }
-  .card header{
-    padding:10px 12px; border-bottom:1px solid var(--stroke);
-    display:flex; align-items:center; justify-content:space-between;
-  }
+  .tabs button[aria-selected="true"]{border-color:var(--accent);background:linear-gradient(180deg,#12182a,#0c1120)}
+  .grid{display:grid;grid-template-columns:1fr 2fr;gap:16px}
+  @media (max-width:900px){.grid{grid-template-columns:1fr;grid-auto-rows:minmax(240px,auto)}}
+  .card{border:1px solid var(--stroke);border-radius:12px;overflow:hidden;background:linear-gradient(180deg,#0d1019,#0b0f1b);display:flex;flex-direction:column}
+  .card header{padding:10px 12px;border-bottom:1px solid var(--stroke);display:flex;align-items:center;justify-content:space-between}
   .card header h2{font-size:14px;margin:0;font-weight:600;letter-spacing:.02em}
-  .frame{position:relative; aspect-ratio:16/9; width:100%; background:#000}
-  .frame > iframe{position:absolute; inset:0; width:100%; height:100%; border:0}
-  .controls{
-    display:flex; gap:8px; padding:10px 12px; border-top:1px solid var(--stroke);
-  }
+  .frame{position:relative;aspect-ratio:16/9;width:100%;background:#000}
+  .frame > iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+  .controls{display:flex;gap:8px;padding:10px 12px;border-top:1px solid var(--stroke);flex-wrap:wrap}
   .controls button{
-    appearance:none; border:1px solid var(--stroke); background:#0f1320; color:var(--ink);
-    padding:8px 10px; border-radius:8px; cursor:pointer; font-weight:600;
+    appearance:none;border:1px solid var(--stroke);background:#0f1320;color:var(--ink);
+    padding:8px 10px;border-radius:8px;cursor:pointer;font-weight:600
   }
-  .controls button:focus, .controls button:hover{outline:0; border-color:var(--accent)}
-  .hint{opacity:.75; font-size:12px; margin-left:auto}
-  .divider{height:1px; background:var(--stroke); margin:16px 0}
+  .controls button:focus,.controls button:hover{outline:0;border-color:var(--accent)}
+  a.button{ text-decoration:none }
+  a.button > button{ /* reuse button styling */
+    appearance:none;border:1px solid var(--stroke);background:#0f1320;color:var(--ink);
+    padding:8px 10px;border-radius:8px;cursor:pointer;font-weight:600
+  }
+  a.button > button:focus,a.button > button:hover{outline:0;border-color:var(--accent)}
+  .divider{height:1px;background:var(--stroke);margin:16px 0}
 </style>
 </head>
 <body>
 <div class="wrap">
 
+  <!-- Header + Top Quick Links -->
   <header>
-    <h1>Embedded YouTube + Multipage PDF</h1>
-    <div class="hint">GitHub Pages friendly · No extra build tools</div>
+    <h1>Embedded YouTube + Multipage PDFs</h1>
+    <div class="top-right">
+      <nav id="topDocLinks" aria-label="PDF quick links"></nav>
+      <span class="hint">GitHub Pages friendly · No build tools</span>
+    </div>
   </header>
 
-  <div class="grid">
+  <!-- PDF Tabs -->
+  <nav class="tabs" id="tabs" role="tablist" aria-label="PDF Tabs"></nav>
 
-    <!-- LEFT: LOOPING YOUTUBE -->
+  <div class="grid">
+    <!-- LEFT: YouTube -->
     <section class="card" aria-label="Video">
       <header><h2>Product Teaser (loops)</h2></header>
       <div class="frame">
-        <!-- ✅ Proper YouTube EMBED with loop + autoplay + JS API -->
         <iframe
           id="yt"
           src="https://www.youtube.com/embed/cLHOGWiA6YQ?enablejsapi=1&loop=1&playlist=cLHOGWiA6YQ&autoplay=1&mute=1&controls=1&modestbranding=1&rel=0&playsinline=1"
@@ -81,76 +74,195 @@
         </iframe>
       </div>
       <div class="controls" role="group" aria-label="Video controls">
-        <button onclick="document.getElementById('yt').contentWindow.postMessage(JSON.stringify({event:'command',func:'playVideo'}),'*')">Play</button>
-        <button onclick="document.getElementById('yt').contentWindow.postMessage(JSON.stringify({event:'command',func:'pauseVideo'}),'*')">Pause</button>
+        <button onclick="postYT('playVideo')">Play</button>
+        <button onclick="postYT('pauseVideo')">Pause</button>
         <span class="hint">Loop via <code>loop=1&playlist=cLHOGWiA6YQ</code></span>
       </div>
     </section>
 
-    <!-- RIGHT: MULTIPAGE PDF (PDF.js viewer) -->
+    <!-- RIGHT: PDF Viewer -->
     <section class="card" aria-label="PDF">
-      <header><h2>Multipage PDF</h2></header>
-      <div class="frame" style="aspect-ratio:auto; flex:1 1 auto;">
-        <iframe id="pdfFrame" title="PDF"
-          src=""
-          referrerpolicy="no-referrer-when-downgrade"></iframe>
+      <header><h2 id="pdfTitle">Multipage PDF</h2></header>
+      <div class="frame" style="aspect-ratio:auto;flex:1 1 auto;">
+        <iframe id="pdfFrame" title="PDF" src="" referrerpolicy="no-referrer-when-downgrade"></iframe>
       </div>
-      <div class="controls" role="group" aria-label="PDF page controls">
+      <div class="controls" role="group" aria-label="PDF controls">
         <button id="prevBtn">◀ Prev page</button>
         <button id="nextBtn">Next page ▶</button>
         <span class="hint" id="pageLabel">page 1</span>
       </div>
     </section>
-
   </div>
 
   <div class="divider" aria-hidden="true"></div>
 
-  <!-- Optional third row for helpful links/menu -->
+  <!-- Optional lower quick links -->
   <section class="card" aria-label="Links">
     <header><h2>Quick Links</h2></header>
     <div class="controls" style="flex-wrap:wrap">
-      <a class="button" href="./" style="text-decoration:none"><button>Home</button></a>
-      <a class="button" href="https://ctlamedica.com" style="text-decoration:none" target="_blank" rel="noopener"><button>CTL Amedica</button></a>
-      <span class="hint">Edit links at the bottom of the file.</span>
+      <a class="button" href="./"><button>Home</button></a>
+      <a class="button" href="https://ctlamedica.com" target="_blank" rel="noopener"><button>CTL Amedica</button></a>
+      <!-- Auto-injected PDF links will also appear up top -->
+      <span class="hint">Edit DOCS array in the script to change PDFs.</span>
     </div>
   </section>
 
 </div>
 
 <script>
-  // === Config you tweak in-place ===
-  // Set your absolute PDF URL here
-  const PDF_URL = "https://ctlamedicamarketing.github.io/qr-redirects/r/CUSTOM/SpineWave/KLIMT/KLIMT - TRAINING.pdf"; // <-- change this if needed
+  // ====== 1) Define your PDFs here (add/remove as needed) ======
+  const DOCS = [
+    {
+      slug: 'klimt-training',
+      title: 'KLIMT Training',
+      url: 'https://ctlamedicamarketing.github.io/qr-redirects/r/CUSTOM/SpineWave/KLIMT/KLIMT - TRAINING.pdf'
+    },
+    {
+      slug: 'mondrian-alif',
+      title: 'MONDRIAN ALIF Overview',
+      url: 'https://example.com/path/to/MONDRIAN-ALIF.pdf' // TODO: replace
+    },
+    {
+      slug: 'monet-guide',
+      title: 'MONET Surgical Guide',
+      url: 'https://example.com/path/to/MONET-GUIDE.pdf' // TODO: replace
+    }
+  ];
+
+  // ====== 2) State & elements ======
+  let currentDoc = DOCS[0];
   let currentPage = 1;
+  const tabs     = document.getElementById('tabs');
+  const pdfFrame = document.getElementById('pdfFrame');
+  const pageLabel= document.getElementById('pageLabel');
+  const pdfTitle = document.getElementById('pdfTitle');
+  const topDocLinks = document.getElementById('topDocLinks');
 
-  // Build the PDF.js viewer URL (hosted by Mozilla) with your PDF
-  const encoded = encodeURIComponent(PDF_URL);
-  const baseViewer = "https://mozilla.github.io/pdf.js/web/viewer.html?file=" + encoded;
-  const baseHash   = "#pagemode=none&zoom=page-fit&page=";
-  const pdfFrame   = document.getElementById('pdfFrame');
-  const pageLabel  = document.getElementById('pageLabel');
+  // ====== 3) Helpers ======
+  const viewerURL = (pdfUrl, page) => {
+    const enc = encodeURIComponent(pdfUrl);
+    return `https://mozilla.github.io/pdf.js/web/viewer.html?file=${enc}#pagemode=none&zoom=page-fit&page=${Math.max(1, page|0)}`;
+  };
 
-  function loadPage(n){
-    currentPage = Math.max(1, n);
-    pdfFrame.src = baseViewer + baseHash + currentPage;
-    pageLabel.textContent = "page " + currentPage;
+  function setHash(slug, page=1){
+    const params = new URLSearchParams({ doc: slug, page: String(Math.max(1,page)) });
+    // Don’t trigger extra scroll by using replace if same
+    if (location.hash.slice(1) !== params.toString()){
+      location.hash = params.toString();
+    } else {
+      applyFromHash(); // manual apply if unchanged (e.g., first set)
+    }
+  }
+  function parseHash(){
+    const q = new URLSearchParams(location.hash.slice(1));
+    const slug = q.get('doc');
+    const page = parseInt(q.get('page') || '1', 10);
+    return { slug, page: Number.isFinite(page) ? Math.max(1,page) : 1 };
   }
 
-  document.getElementById('prevBtn').addEventListener('click', ()=>loadPage(currentPage-1));
-  document.getElementById('nextBtn').addEventListener('click', ()=>loadPage(currentPage+1));
-  loadPage(currentPage);
+  function applyFromHash(){
+    const { slug, page } = parseHash();
+    const found = DOCS.find(d => d.slug === (slug || DOCS[0].slug)) || DOCS[0];
+    currentDoc  = found;
+    currentPage = page || 1;
 
-  // Safety: ensure JS API param exists if someone edits the iframe URL later.
+    // Update viewer + UI
+    pdfFrame.src = viewerURL(currentDoc.url, currentPage);
+    pageLabel.textContent = `${currentDoc.title} — page ${currentPage}`;
+    pdfTitle.textContent  = currentDoc.title;
+
+    // Update tabs aria-selected
+    [...tabs.querySelectorAll('button[role="tab"]')].forEach(btn=>{
+      btn.setAttribute('aria-selected', String(btn.dataset.slug === currentDoc.slug));
+    });
+  }
+
+  // ====== 4) Build tabs & top quick links ======
+  function renderTabs(){
+    tabs.innerHTML = '';
+    DOCS.forEach((d,i)=>{
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.role = 'tab';
+      btn.dataset.slug = d.slug;
+      btn.setAttribute('aria-selected', String(i===0));
+      btn.textContent = d.title;
+      btn.addEventListener('click', ()=> setHash(d.slug, 1));
+      tabs.appendChild(btn);
+    });
+  }
+
+  function renderTopLinks(){
+    // Top quick links: Home / CTL + per-PDF deep links
+    topDocLinks.innerHTML = '';
+    const group = document.createElement('div');
+    group.className = 'controls';
+    group.style.padding = '0'; // tighter in header
+
+    // Static links (optional)
+    const home = document.createElement('a');
+    home.className = 'button';
+    home.href = './';
+    home.innerHTML = '<button>Home</button>';
+    group.appendChild(home);
+
+    const ctl = document.createElement('a');
+    ctl.className = 'button';
+    ctl.href = 'https://ctlamedica.com';
+    ctl.target = '_blank';
+    ctl.rel = 'noopener';
+    ctl.innerHTML = '<button>CTL Amedica</button>';
+    group.appendChild(ctl);
+
+    // Divider-ish hint
+    const label = document.createElement('span');
+    label.className = 'hint';
+    label.style.margin = '0 8px';
+    label.textContent = 'PDFs:';
+    group.appendChild(label);
+
+    // Per-PDF quick links
+    DOCS.forEach(d=>{
+      const a = document.createElement('a');
+      a.className = 'button';
+      a.href = `#doc=${encodeURIComponent(d.slug)}&page=1`;
+      a.innerHTML = `<button>${d.title}</button>`;
+      group.appendChild(a);
+    });
+
+    topDocLinks.appendChild(group);
+  }
+
+  // ====== 5) Wire controls ======
+  document.getElementById('prevBtn').addEventListener('click', ()=>{
+    setHash(currentDoc.slug, Math.max(1, currentPage - 1));
+  });
+  document.getElementById('nextBtn').addEventListener('click', ()=>{
+    setHash(currentDoc.slug, currentPage + 1);
+  });
+  window.addEventListener('hashchange', applyFromHash);
+
+  // YouTube play/pause helper
+  function postYT(func){
+    document.getElementById('yt')
+      .contentWindow
+      .postMessage(JSON.stringify({event:'command',func}), '*');
+  }
+  // Ensure JS API on the YT iframe
   (function ensureYTAPI(){
     const yt = document.getElementById('yt');
     const url = new URL(yt.src);
-    if(!url.searchParams.has('enablejsapi')) {
+    if(!url.searchParams.has('enablejsapi')){
       url.searchParams.set('enablejsapi','1');
       yt.src = url.toString();
     }
   })();
+
+  // ====== 6) Boot ======
+  renderTabs();
+  renderTopLinks();
+  // Initialize from hash or default
+  if (!location.hash) setHash(DOCS[0].slug, 1); else applyFromHash();
 </script>
 </body>
 </html>
-
