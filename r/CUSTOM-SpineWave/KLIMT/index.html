@@ -69,19 +69,21 @@
     <section class="card" aria-label="Video">
       <header><h2>Product Teaser (loops)</h2></header>
       <div class="frame">
-        <!-- TODO 1: replace VIDEO_ID below -->
+        <!-- ✅ Proper YouTube EMBED with loop + autoplay + JS API -->
         <iframe
           id="yt"
-          src="https://www.youtube.com/watch?v=cLHOGWiA6YQ"
-          title="YouTube video" allow="autoplay; encrypted-media; picture-in-picture; web-share"
+          src="https://www.youtube.com/embed/cLHOGWiA6YQ?enablejsapi=1&loop=1&playlist=cLHOGWiA6YQ&autoplay=1&mute=1&controls=1&modestbranding=1&rel=0&playsinline=1"
+          title="YouTube video"
+          allow="autoplay; encrypted-media; picture-in-picture; web-share"
+          allowfullscreen
+          loading="lazy"
           referrerpolicy="strict-origin-when-cross-origin">
         </iframe>
       </div>
       <div class="controls" role="group" aria-label="Video controls">
-        <!-- These are basic; YouTube UI provides the rest -->
         <button onclick="document.getElementById('yt').contentWindow.postMessage(JSON.stringify({event:'command',func:'playVideo'}),'*')">Play</button>
         <button onclick="document.getElementById('yt').contentWindow.postMessage(JSON.stringify({event:'command',func:'pauseVideo'}),'*')">Pause</button>
-        <span class="hint">Loop is enforced via <code>loop=1&playlist=VIDEO_ID</code></span>
+        <span class="hint">Loop via <code>loop=1&playlist=cLHOGWiA6YQ</code></span>
       </div>
     </section>
 
@@ -89,8 +91,6 @@
     <section class="card" aria-label="PDF">
       <header><h2>Multipage PDF</h2></header>
       <div class="frame" style="aspect-ratio:auto; flex:1 1 auto;">
-        <!-- We use the hosted PDF.js viewer so you get page thumbnails, search, etc. -->
-        <!-- TODO 2: put your absolute PDF URL in data-pdf -->
         <iframe id="pdfFrame" title="PDF"
           src=""
           referrerpolicy="no-referrer-when-downgrade"></iframe>
@@ -110,7 +110,6 @@
   <section class="card" aria-label="Links">
     <header><h2>Quick Links</h2></header>
     <div class="controls" style="flex-wrap:wrap">
-      <!-- TODO 3: customize these links or remove this section -->
       <a class="button" href="./" style="text-decoration:none"><button>Home</button></a>
       <a class="button" href="https://ctlamedica.com" style="text-decoration:none" target="_blank" rel="noopener"><button>CTL Amedica</button></a>
       <span class="hint">Edit links at the bottom of the file.</span>
@@ -121,13 +120,11 @@
 
 <script>
   // === Config you tweak in-place ===
-  // TODO 2: set your PDF URL here (absolute URL recommended)
-  const PDF_URL = "https://ctlamedicamarketing.github.io/qr-redirects/r/CUSTOM/SpineWave/KLIMT/KLIMT - TRAINING.pdf"; // <-- change this
-  // Start on page 1; we’ll update the viewer URL hash to jump pages.
+  // Set your absolute PDF URL here
+  const PDF_URL = "https://ctlamedicamarketing.github.io/qr-redirects/r/CUSTOM/SpineWave/KLIMT/KLIMT - TRAINING.pdf"; // <-- change this if needed
   let currentPage = 1;
 
   // Build the PDF.js viewer URL (hosted by Mozilla) with your PDF
-  // We encode the PDF URL to survive query-string parsing on their end.
   const encoded = encodeURIComponent(PDF_URL);
   const baseViewer = "https://mozilla.github.io/pdf.js/web/viewer.html?file=" + encoded;
   const baseHash   = "#pagemode=none&zoom=page-fit&page=";
@@ -140,15 +137,12 @@
     pageLabel.textContent = "page " + currentPage;
   }
 
-  // Buttons just rebuild the iframe URL; no cross-origin access needed.
   document.getElementById('prevBtn').addEventListener('click', ()=>loadPage(currentPage-1));
   document.getElementById('nextBtn').addEventListener('click', ()=>loadPage(currentPage+1));
-
-  // Initial load
   loadPage(currentPage);
 
-  // Enable JS API for YouTube iFrame (so Play/Pause buttons work)
-  (function enableYTAPI(){
+  // Safety: ensure JS API param exists if someone edits the iframe URL later.
+  (function ensureYTAPI(){
     const yt = document.getElementById('yt');
     const url = new URL(yt.src);
     if(!url.searchParams.has('enablejsapi')) {
@@ -159,3 +153,4 @@
 </script>
 </body>
 </html>
+
