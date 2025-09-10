@@ -50,7 +50,6 @@
 
   <div class="grid">
 
-    <!-- LEFT: LOOPING YOUTUBE -->
     <section class="card" aria-label="Video">
       <header><h2>Product Teaser (loops)</h2></header>
       <div class="frame">
@@ -65,10 +64,8 @@
       </div>
     </section>
 
-    <!-- RIGHT: NATIVE PDF VIEWER -->
     <section class="card" aria-label="PDF">
       <header><h2 id="docTitle">Document</h2></header>
-
       <div id="chipbar" class="chipbar"></div>
 
       <div class="frame" style="aspect-ratio:auto; flex:1 1 auto;">
@@ -79,7 +76,6 @@
         <button id="nextBtn">Next page ▶</button>
         <span class="hint" id="pageLabel">page 1</span>
       </div>
-
       <div id="debug" class="debug"></div>
     </section>
 
@@ -102,13 +98,13 @@
   // ===== CONFIG =====
   const YT_ID = "cLHOGWiA6YQ";
 
-  // Updated filenames (exactly as in your folder)
+  // Training doc removed.
   const DOCS = [
-    { key:"klimt-stg",                      label:"KLIMT STG",                      path:"KLIMT-STG.pdf" },
-    { key:"klimt-expansion-table-and-tips", label:"Klimt Expansion Table & Tips",   path:"Klimt-Expansion-table-and-Tips.pdf" },
-    { key:"klimt-expansion-table",          label:"Klimt Expansion Table",          path:"Klimt-Expansion-table.pdf" }
+    { key:"klimt-stg-367003-0904",          label:"KLIMT STG.367.003 — 09.04",     path:"KLIMT STG.367.003 — 09.04.pdf" },
+    { key:"klimt-expansion-table-and-tips", label:"Klimt Expansion Table & Tips",  path:"Klimt Expansion table and Tips.pdf" },
+    { key:"klimt-expansion-table",          label:"Klimt Expansion Table",         path:"Klimt Expansion table.pdf" }
   ];
-  const DEFAULT_KEY = "klimt-stg";
+  const DEFAULT_KEY = "klimt-stg-367003-0904";
   // ===================
 
   // YouTube embed
@@ -132,7 +128,6 @@
   const chipbar   = document.getElementById("chipbar");
   const debugOut  = document.getElementById("debug");
 
-  // Encode each path segment so spaces/characters are safe
   function encodePath(p){ return p.split('/').map(encodeURIComponent).join('/'); }
 
   // Build chips
@@ -156,7 +151,7 @@
     return DOCS.find(d => d.key === key) || DOCS.find(d => d.key === DEFAULT_KEY);
   }
 
-  function loadPage(n){
+  async function loadPage(n){
     currentPage = Math.max(1, n);
     const doc   = resolveDoc(currentDoc);
     const src   = `${encodePath(doc.path)}#page=${currentPage}&zoom=page-fit`;
