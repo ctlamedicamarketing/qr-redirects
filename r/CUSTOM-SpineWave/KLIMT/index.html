@@ -19,20 +19,23 @@
   .card{ border:1px solid var(--stroke); border-radius:12px; overflow:hidden;
          background:linear-gradient(180deg,#0d1019,#0b0f1b); display:flex; flex-direction:column; }
   .card header{ padding:10px 12px; border-bottom:1px solid var(--stroke);
-                display:flex; align-items:center; justify-content:space-between; }
+                display:flex; align-items:center; justify-content:space-between; gap:8px; flex-wrap:wrap; }
   .card header h2{ font-size:14px; margin:0; font-weight:600; letter-spacing:.02em }
   .frame{ position:relative; aspect-ratio:16/9; width:100%; background:#000 }
   .frame > iframe{ position:absolute; inset:0; width:100%; height:100%; border:0 }
   .controls{ display:flex; gap:8px; padding:10px 12px; border-top:1px solid var(--stroke); flex-wrap:wrap; }
-  .btn, .controls button{
+  .btn, .controls button, .chip, .seg button{
     appearance:none; border:1px solid var(--stroke); background:#0f1320; color:var(--ink);
     padding:8px 10px; border-radius:8px; cursor:pointer; font-weight:600; text-decoration:none; display:inline-flex; align-items:center;
   }
-  .btn:focus, .btn:hover, .controls button:focus, .controls button:hover{ outline:0; border-color:var(--accent) }
-  .hint{ opacity:.75; font-size:12px; margin-left:auto }
+  .btn:hover, .chip:hover, .seg button:hover, .controls button:hover{ border-color:var(--accent) }
   .chipbar{ display:flex; gap:8px; padding:12px 12px 0 12px; flex-wrap:wrap; }
-  .chip{ border:1px solid var(--stroke); border-radius:999px; padding:6px 10px; text-decoration:none; color:var(--ink); }
-  .chip:hover{ border-color:var(--accent) }
+  .chip{ border-radius:999px; padding:6px 10px }
+  .seg{ display:inline-flex; gap:0; border:1px solid var(--stroke); border-radius:10px; overflow:hidden; }
+  .seg button{ border:0; background:#0f1320; padding:6px 10px; }
+  .seg button.active{ background:#141823; border-right:1px solid var(--stroke) }
+  .seg button + button{ border-left:1px solid var(--stroke) }
+  .hint{ opacity:.75; font-size:12px; margin-left:auto }
   .divider{ height:1px; background:var(--stroke); margin:16px 0 }
   .debug{ font-size:12px; opacity:.6; padding:8px 12px }
 </style>
@@ -49,8 +52,7 @@
   </header>
 
   <div class="grid">
-
-    <!-- LEFT: LOOPING YOUTUBE -->
+    <!-- LEFT: YOUTUBE -->
     <section class="card" aria-label="Video">
       <header><h2>Product Teaser (loops)</h2></header>
       <div class="frame">
@@ -65,9 +67,18 @@
       </div>
     </section>
 
-    <!-- RIGHT: NATIVE PDF VIEWER -->
+    <!-- RIGHT: PDF -->
     <section class="card" aria-label="PDF">
-      <header><h2 id="docTitle">Document</h2></header>
+      <header>
+        <h2 id="docTitle">Document</h2>
+        <div class="seg" aria-label="View mode">
+          <button id="modeAuto"   class="active" title="Prefer PDF.js for reliability">Auto</button>
+          <button id="modePdfjs"               title="Force PDF.js viewer">PDF.js</button>
+          <button id="modeNative"              title="Force native browser viewer">Native</button>
+        </div>
+        <a id="openTab" class="btn" target="_blank" rel="noopener">Open in new tab</a>
+        <span class="hint" id="modeHint">PDF.js mode</span>
+      </header>
 
       <div id="chipbar" class="chipbar"></div>
 
@@ -79,14 +90,11 @@
         <button id="nextBtn">Next page ▶</button>
         <span class="hint" id="pageLabel">page 1</span>
       </div>
-
       <div id="debug" class="debug"></div>
     </section>
-
   </div>
 
   <div class="divider" aria-hidden="true"></div>
-
   <section class="card" aria-label="Links">
     <header><h2>Quick Links</h2></header>
     <div class="controls">
@@ -95,23 +103,24 @@
       <span class="hint">Edit DOCS & YouTube in the script.</span>
     </div>
   </section>
-
 </div>
 
 <script>
   // ===== CONFIG =====
-  const YT_ID = "cLHOGWiA6YQ";
+  const YT_ID  = "cLHOGWiA6YQ";
+  const VIEWER = "/qr-redirects/vendor/pdfjs/web/viewer.html"; // self-hosted PDF.js viewer
 
-  // Updated filenames (exactly as in your folder)
+  // Updated filenames in this folder
   const DOCS = [
-    { key:"klimt-stg",                      label:"KLIMT STG",                      path:"KLIMT-STG.pdf" },
-    { key:"klimt-expansion-table-and-tips", label:"Klimt Expansion Table & Tips",   path:"Klimt-Expansion-table-and-Tips.pdf" },
-    { key:"klimt-expansion-table",          label:"Klimt Expansion Table",          path:"Klimt-Expansion-table.pdf" }
+    { key:"klimt-stg",                      label:"KLIMT STG",                    path:"KLIMT-STG.pdf" },
+    { key:"klimt-expansion-table-and-tips", label:"Klimt Expansion Table & Tips", path:"Klimt-Expansion-table-and-Tips.pdf" },
+    { key:"klimt-expansion-table",          label:"Klimt Expansion Table",        path:"Klimt-Expansion-table.pdf" }
   ];
+  const ALIASES = { "klimt-training":"klimt-stg", "klimt-stg-367003-0904":"klimt-stg" };
   const DEFAULT_KEY = "klimt-stg";
   // ===================
 
-  // YouTube embed
+  // --- YouTube ---
   (function initYouTube(){
     const yt = document.getElementById('yt');
     const origin = location.origin;
@@ -125,15 +134,23 @@
     document.getElementById('pauseBtn').addEventListener('click',()=>post('pauseVideo'));
   })();
 
-  // --- PDF native viewer + hash routing ---
+  // --- PDF tri-mode viewer ---
   const pdfFrame  = document.getElementById("pdfFrame");
   const pageLabel = document.getElementById("pageLabel");
   const docTitle  = document.getElementById("docTitle");
   const chipbar   = document.getElementById("chipbar");
   const debugOut  = document.getElementById("debug");
+  const openTab   = document.getElementById("openTab");
+  const modeHint  = document.getElementById("modeHint");
+
+  const modeBtns  = {
+    auto:   document.getElementById("modeAuto"),
+    pdfjs:  document.getElementById("modePdfjs"),
+    native: document.getElementById("modeNative")
+  };
 
   // Encode each path segment so spaces/characters are safe
-  function encodePath(p){ return p.split('/').map(encodeURIComponent).join('/'); }
+  const encodePath = p => p.split('/').map(encodeURIComponent).join('/');
 
   // Build chips
   DOCS.forEach(d=>{
@@ -144,38 +161,74 @@
     chipbar.appendChild(a);
   });
 
-  function getHash(name, fallback){
+  const getHash = (name, fallback)=>{
     const params = new URLSearchParams(location.hash.slice(1));
     return params.get(name) ?? fallback;
-  }
+  };
 
   let currentPage = 1;
   let currentDoc  = DEFAULT_KEY;
+  let viewMode    = 'auto'; // 'auto' | 'pdfjs' | 'native'
 
-  function resolveDoc(key){
-    return DOCS.find(d => d.key === key) || DOCS.find(d => d.key === DEFAULT_KEY);
+  const resolveDoc = key => DOCS.find(d => d.key === key) || DOCS.find(d => d.key === DEFAULT_KEY);
+
+  const buildNativeSrc = (path, page)=> `${encodePath(path)}#page=${page}&zoom=page-fit`;
+  const buildPdfjsSrc  = (path, page)=> {
+    const fileURL = new URL(path, location.href).toString(); // absolute
+    return `${VIEWER}?file=${encodeURIComponent(fileURL)}#pagemode=none&zoom=page-fit&page=${page}`;
+  };
+
+  function updateModeButtons(){
+    Object.entries(modeBtns).forEach(([k,btn])=>{
+      btn.classList.toggle('active', k === viewMode || (viewMode==='auto' && k==='auto'));
+    });
+    modeHint.textContent = (viewMode==='native') ? 'Native mode'
+                        : (viewMode==='pdfjs')  ? 'PDF.js mode'
+                        : 'Auto (PDF.js preferred)';
   }
 
   function loadPage(n){
     currentPage = Math.max(1, n);
     const doc   = resolveDoc(currentDoc);
-    const src   = `${encodePath(doc.path)}#page=${currentPage}&zoom=page-fit`;
+
+    // Decide mode
+    const modeToUse = (viewMode === 'auto') ? 'pdfjs' : viewMode;
+
+    // Build URLs
+    const src = (modeToUse === 'native')
+      ? buildNativeSrc(doc.path, currentPage)
+      : buildPdfjsSrc(doc.path, currentPage);
+
+    const direct = encodePath(doc.path);
+
+    // Apply
     pdfFrame.src = src;
+    openTab.href = direct;
+    openTab.download = ""; // lets user save if they want
     pageLabel.textContent = `page ${currentPage}`;
     docTitle.textContent  = doc.label;
-    debugOut.innerHTML = `PDF URL: <a href="${src}" target="_blank" rel="noopener">${src}</a>`;
+    if (debugOut) debugOut.innerHTML = `Viewer: <a href="${src}" target="_blank" rel="noopener">${src}</a> &nbsp;|&nbsp; File: <a href="${direct}" target="_blank" rel="noopener">${direct}</a>`;
+    updateModeButtons();
   }
 
   function applyFromHash(){
-    const key  = decodeURIComponent(getHash("doc", DEFAULT_KEY));
+    const raw  = decodeURIComponent(getHash("doc", DEFAULT_KEY));
+    const key  = ALIASES[raw] || raw;
     const page = parseInt(getHash("page", "1"), 10) || 1;
     currentDoc  = key;
     currentPage = Math.max(1, page);
     loadPage(currentPage);
   }
 
+  // Wire paging
   document.getElementById("prevBtn").addEventListener("click", ()=>loadPage(currentPage-1));
   document.getElementById("nextBtn").addEventListener("click", ()=>loadPage(currentPage+1));
+
+  // Wire mode switch
+  modeBtns.auto  .addEventListener('click', ()=>{ viewMode='auto';   loadPage(currentPage); });
+  modeBtns.pdfjs .addEventListener('click', ()=>{ viewMode='pdfjs';  loadPage(currentPage); });
+  modeBtns.native.addEventListener('click', ()=>{ viewMode='native'; loadPage(currentPage); });
+
   window.addEventListener('hashchange', applyFromHash);
   applyFromHash();
 </script>
