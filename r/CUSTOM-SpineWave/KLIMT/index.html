@@ -34,6 +34,7 @@
   .chip{ border:1px solid var(--stroke); border-radius:999px; padding:6px 10px; text-decoration:none; color:var(--ink); }
   .chip:hover{ border-color:var(--accent) }
   .divider{ height:1px; background:var(--stroke); margin:16px 0 }
+  .debug{ font-size:12px; opacity:.6; padding:8px 12px }
 </style>
 </head>
 <body>
@@ -81,6 +82,9 @@
         <button id="nextBtn">Next page ▶</button>
         <span class="hint" id="pageLabel">page 1</span>
       </div>
+
+      <!-- Tiny debug readout (click to open in new tab if needed) -->
+      <div id="debug" class="debug"></div>
     </section>
 
   </div>
@@ -101,15 +105,14 @@
 
 <script>
   // ======== CONFIG ========
-  const YT_ID = "cLHOGWiA6YQ"; // <- change to your video ID
+  const YT_ID = "cLHOGWiA6YQ"; // <- your video ID
 
-  // Keep PDFs in the SAME FOLDER as this index.html.
-  // Edit labels/paths here (paths can have spaces & em-dashes).
+  // Exact filenames as they exist in r/CUSTOM-SpineWave/KLIMT/
   const DOCS = [
-    { key:"klimt-training",           label:"KLIMT – TRAINING",                 path:"./KLIMT - TRAINING.pdf" },
-    { key:"klimt-stg-367003-0904",    label:"KLIMT STG.367.003 — 09.04",       path:"./KLIMT STG.367.003 — 09.04.pdf" },
-    { key:"klimt-expansion-tips",     label:"Klimt Expansion Table & Tips",    path:"./Klimt Expansion Table & Tips.pdf" },
-    { key:"klimt-expansion-table",    label:"Klimt Expansion Table",           path:"./Klimt Expansion Table.pdf" }
+    { key:"klimt-training",        label:"KLIMT – TRAINING",                 path:"./KLIMT - TRAINING.pdf" },
+    { key:"klimt-stg-367003-0904", label:"KLIMT STG.367.003 — 09.04",        path:"./KLIMT STG.367.003 — 09.04.pdf" },
+    { key:"klimt-expansion-tips",  label:"Klimt Expansion Table & Tips",     path:"./Klimt Expansion table and Tips.pdf" },
+    { key:"klimt-expansion-table", label:"Klimt Expansion Table",            path:"./Klimt Expansion table.pdf" }
   ];
   const DEFAULT_KEY = "klimt-training";
   // ========================
@@ -136,6 +139,7 @@
   const pageLabel = document.getElementById("pageLabel");
   const docTitle  = document.getElementById("docTitle");
   const chipbar   = document.getElementById("chipbar");
+  const debugOut  = document.getElementById("debug");
 
   // Build chips from DOCS
   DOCS.forEach(d=>{
@@ -161,11 +165,13 @@
   function loadPage(n){
     currentPage = Math.max(1, n);
     const doc = resolveDoc(currentDoc);
-    // encodeURI keeps slashes, encodes spaces/unicode safely
+    // encodeURI keeps slashes; encodes spaces & Unicode safely
     const encodedPath = encodeURI(doc.path);
-    pdfFrame.src = `${encodedPath}#page=${currentPage}&zoom=page-fit`;
+    const src = `${encodedPath}#page=${currentPage}&zoom=page-fit`;
+    pdfFrame.src = src;
     pageLabel.textContent = `page ${currentPage}`;
     docTitle.textContent  = doc.label;
+    debugOut.innerHTML = `PDF URL: <a href="${src}" target="_blank" rel="noopener">${src}</a>`;
   }
 
   function applyFromHash(){
