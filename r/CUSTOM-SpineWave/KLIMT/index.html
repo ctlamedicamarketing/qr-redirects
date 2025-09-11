@@ -3,42 +3,63 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>KLIMT • Reliable PDF Downloads</title>
+<title>KLIMT • Video + Rock-Solid PDF Downloads</title>
 <meta name="robots" content="noindex, nofollow" />
 <style>
   :root{--bg:#0b0c10;--panel:#0d111a;--ink:#e8eaed;--muted:#9aa0a6;--stroke:#1e2330;--accent:#ffc81a}
   *{box-sizing:border-box}
   html,body{height:100%;margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 system-ui,-apple-system,Segoe UI,Roboto,Arial}
-  .wrap{min-height:100%;display:grid;grid-template-rows:auto 1fr auto;gap:16px;max-width:1100px;margin:0 auto;padding:16px}
+  .wrap{min-height:100%;display:grid;grid-template-rows:auto 1fr auto;gap:16px;max-width:1200px;margin:0 auto;padding:16px}
   header{display:flex;align-items:center;justify-content:space-between;padding-bottom:8px;border-bottom:1px solid var(--stroke)}
   h1{margin:0;font-size:18px;font-weight:700}
+  .grid{display:grid;grid-template-columns:1fr 1.3fr;gap:16px}
+  @media (max-width:980px){.grid{grid-template-columns:1fr}}
   .card{background:var(--panel);border:1px solid var(--stroke);border-radius:14px;overflow:hidden}
   .head{display:flex;align-items:center;justify-content:space-between;padding:12px;border-bottom:1px solid var(--stroke)}
+  .frame{position:relative;aspect-ratio:16/9;width:100%;background:#000}
+  .frame>iframe{position:absolute;inset:0;border:0;width:100%;height:100%}
   .list{padding:12px;display:grid;gap:12px}
-  .item{display:flex;align-items:center;gap:12px;flex-wrap:wrap;border:1px solid var(--stroke);border-radius:12px;padding:10px}
-  .item h3{margin:0;font-size:14px}
-  .btn{appearance:none;border:1px solid var(--stroke);background:linear-gradient(180deg,#0f1320,#0b0f1b);color:var(--ink);padding:8px 12px;border-radius:10px;cursor:pointer;font-weight:600}
+  .item{display:grid;grid-template-columns:1fr auto;gap:10px;border:1px solid var(--stroke);border-radius:12px;padding:10px}
+  .title{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  .title h3{margin:0;font-size:14px}
+  .btn{appearance:none;border:1px solid var(--stroke);background:linear-gradient(180deg,#0f1320,#0b0f1b);color:var(--ink);padding:8px 12px;border-radius:10px;cursor:pointer;font-weight:600;text-decoration:none}
   .btn:hover{border-color:var(--accent)}
   .muted{color:var(--muted)}
+  .links{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  .tiny{font-size:12px}
   details.debug{padding:8px 12px;border-top:1px dashed var(--stroke);font-size:12px;color:var(--muted)}
   footer{display:flex;justify-content:flex-end;padding-top:8px;border-top:1px solid var(--stroke)}
 </style>
 </head>
 <body>
 <div class="wrap">
-  <header><h1>KLIMT — PDF Downloads</h1></header>
+  <header><h1>KLIMT — Video & PDF Downloads</h1></header>
 
-  <section class="card">
-    <div class="head"><h2 style="margin:0;font-size:14px">Documents</h2></div>
-    <div id="docList" class="list" aria-live="polite"></div>
-    <details class="debug"><summary>Debug</summary><div id="debugBody">Ready.</div></details>
-  </section>
+  <div class="grid">
+    <!-- LEFT: YouTube -->
+    <section class="card">
+      <div class="head"><h2 style="margin:0;font-size:14px">Product Teaser</h2></div>
+      <div class="frame">
+        <iframe id="yt" title="YouTube video" allow="autoplay; encrypted-media; picture-in-picture; web-share"
+                allowfullscreen loading="lazy" referrerpolicy="strict-origin-when-cross-origin"></iframe>
+      </div>
+    </section>
 
-  <footer><span class="muted">Downloader tries Raw → Pages → Local, and only saves verified PDFs.</span></footer>
+    <!-- RIGHT: Downloads -->
+    <section class="card">
+      <div class="head"><h2 style="margin:0;font-size:14px">Documents</h2></div>
+      <div id="docList" class="list" aria-live="polite"></div>
+      <details class="debug"><summary>Debug</summary><div id="debugBody">Ready.</div></details>
+    </section>
+  </div>
+
+  <footer><span class="muted">Primary button uses Raw GitHub. “Force Save” uses JS if a browser ignores the download hint.</span></footer>
 </div>
 
 <script>
-/* ===================== CONFIG: EDIT THIS BLOCK ONLY ===================== */
+/* ============================= CONFIG ============================= */
+const YT_ID = "cLHOGWiA6YQ"; // your teaser video
+
 const DOCS = [
   {
     label: "KLIMT Overview",
@@ -77,59 +98,53 @@ const DOCS = [
     }
   }
 ];
-/* =================== END CONFIG (no edits needed below) ================== */
+/* ========================= END CONFIG ============================ */
 
-// --- tiny helpers ---
-async function tryHead(url){
-  try { const r = await fetch(url, {method:'HEAD', cache:'no-store', mode:'cors'}); return r.ok ? r : null; }
-  catch { return null; }
-}
-function urlCandidates(p){
-  const c = [];
-  if (p.raw)   c.push(p.raw);
-  if (p.pages) c.push(p.pages);
-  if (p.local){ try { c.push(new URL(p.local, location.href).toString()); } catch { c.push(p.local); } }
-  return c;
-}
-function withBuster(u){ const x = new URL(u, location.href); x.searchParams.set('_v', Date.now()); return x.toString(); }
+// YouTube embed
+(function initYouTube(){
+  const yt = document.getElementById('yt');
+  const params = new URLSearchParams({
+    autoplay:'0', mute:'1', controls:'1', modestbranding:'1', rel:'0',
+    playsinline:'1', loop:'1', playlist:YT_ID, enablejsapi:'1', origin:location.origin
+  });
+  yt.src = `https://www.youtube.com/embed/${YT_ID}?` + params.toString();
+})();
 
-// verify a real PDF: MIME or %PDF- header + %%EOF trailer + size sanity
+// Helpers
+async function headOk(url){
+  try{ const r = await fetch(url, {method:'HEAD', cache:'no-store', mode:'cors'}); return r.ok; }
+  catch{ return false; }
+}
+function withBuster(u){ const x=new URL(u,location.href); x.searchParams.set('_v',Date.now()); return x.toString(); }
 async function isRealPdf(res, blob){
-  const size = blob.size;
-  if (size < 1024) return {ok:false, why:`too small (${size} B)`};
+  const size = blob.size; if (size < 1024) return {ok:false, why:`too small (${size} B)`};
   const ct = (res.headers.get('content-type')||'').toLowerCase();
   const ctPdf = ct.includes('application/pdf');
-  const head = new Uint8Array(await blob.slice(0,5).arrayBuffer());
-  const hasHeader = head[0]===0x25 && head[1]===0x50 && head[2]===0x44 && head[3]===0x46 && head[4]===0x2D; // %PDF-
+  const header = new Uint8Array(await blob.slice(0,5).arrayBuffer());
+  const hasHdr = header[0]===0x25 && header[1]===0x50 && header[2]===0x44 && header[3]===0x46 && header[4]===0x2D; // %PDF-
   const tailText = await blob.slice(Math.max(0,size-1024), size).text();
   const hasEOF = /%%EOF\s*$/.test(tailText);
-  return {ok:(ctPdf || hasHeader) && hasEOF, why:`ct=${ct||'unknown'} hdr=${hasHeader} eof=${hasEOF} size=${size}`};
+  return {ok:(ctPdf || hasHdr) && hasEOF, why:`ct=${ct||'unknown'} hdr=${hasHdr} eof=${hasEOF} size=${size}`};
 }
 
-// try candidates sequentially until a valid PDF is fetched
-async function forceDownload(paths, suggestedName, btn){
-  const original = btn.textContent; btn.textContent="Downloading…"; btn.disabled=true;
-  const candidates = urlCandidates(paths);
+// Force-save via fetch → blob → <a download>
+async function forceSave(paths, suggestedName, btn){
+  const original = btn.textContent; btn.textContent="Saving…"; btn.disabled=true;
+  const candidates = [paths.raw, paths.pages, paths.local ? new URL(paths.local, location.href).toString() : null].filter(Boolean);
   let lastUrl = null, lastErr = null;
 
   try{
     for (const base of candidates){
       lastUrl = base;
       try{
-        if (!base.startsWith('http') || base.includes('github.io') || base.includes('raw.githubusercontent'))
-          await tryHead(base); // not fatal if fails
-
-        const url = withBuster(base);
-        const res = await fetch(url, {mode:'cors', credentials:'omit', cache:'no-store'});
+        const res = await fetch(withBuster(base), {mode:'cors', credentials:'omit', cache:'no-store'});
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const blob = await res.blob();
-
         const verdict = await isRealPdf(res, blob);
         if (!verdict.ok) { lastErr = new Error(`Not a PDF from ${base}: ${verdict.why}`); continue; }
 
-        // filename: Content-Disposition > URL path > suggested
-        const cd = res.headers.get('content-disposition');
         let filename = suggestedName;
+        const cd = res.headers.get('content-disposition');
         if (cd){
           const m = cd.match(/filename\*?=(?:UTF-8''|")?([^\";]+)\"?/i);
           if (m && m[1]) { try{ filename = decodeURIComponent(m[1]); } catch { filename = m[1]; } }
@@ -143,36 +158,63 @@ async function forceDownload(paths, suggestedName, btn){
         document.body.appendChild(a); a.click(); a.remove();
         URL.revokeObjectURL(objectUrl);
 
-        btn.textContent = "Downloaded ✓";
+        btn.textContent = "Saved ✓";
         console.info(`[PDF] saved ${filename} from ${base} (${blob.size} B)`);
-        return; // success
+        return;
       }catch(e){ lastErr = e; console.warn('Attempt failed:', base, e); }
     }
-    // all failed → open the last one for manual Save As…
-    console.warn('All sources failed. Last error:', lastErr);
+    // If fetch path fails (CORS/etc), open last URL so user can Save As…
     window.open(lastUrl, '_blank', 'noopener');
     btn.textContent = "Opened in new tab";
   } finally {
-    setTimeout(()=>{ btn.textContent = original; btn.disabled=false; }, 1800);
+    setTimeout(()=>{ btn.textContent = original; btn.disabled=false; }, 1600);
   }
 }
 
-// --- build UI ---
+// Build UI
 const els = { list: document.getElementById('docList'), debug: document.getElementById('debugBody') };
 
 (async function populate(){
   for (const d of DOCS){
     const row = document.createElement('div'); row.className='item';
-    const h = document.createElement('h3'); h.textContent = d.label;
-    const b = document.createElement('button'); b.className='btn'; b.textContent='Download';
-    b.addEventListener('click', ()=>forceDownload(d.paths, d.filename, b));
-    row.append(h,b); els.list.appendChild(row);
 
-    // Debug reachability (optional but handy)
-    for (const [label,url] of [['Raw',d.paths.raw],['Pages',d.paths.pages],['Local',d.paths.local?new URL(d.paths.local,location.href).toString():null]]){
+    // Left: title + small source links
+    const left = document.createElement('div'); left.className='title';
+    const h = document.createElement('h3'); h.textContent = d.label; left.appendChild(h);
+
+    const links = document.createElement('div'); links.className='links tiny';
+    if (d.paths.raw)   { const a=document.createElement('a'); a.href=d.paths.raw; a.textContent='Raw'; a.target='_blank'; a.rel='noopener'; links.append('· ',a); }
+    if (d.paths.pages) { const a=document.createElement('a'); a.href=d.paths.pages; a.textContent='Pages'; a.target='_blank'; a.rel='noopener'; links.append(' · ',a); }
+    if (d.paths.local) { const a=document.createElement('a'); a.href=new URL(d.paths.local, location.href).toString(); a.textContent='Local'; a.target='_blank'; a.rel='noopener'; links.append(' · ',a); }
+    left.appendChild(links);
+
+    // Right: buttons
+    const right = document.createElement('div'); right.style.display='flex'; right.style.gap='8px';
+    // Primary: direct Raw link with download hint
+    const rawHref = d.paths.raw || d.paths.pages || (d.paths.local ? new URL(d.paths.local, location.href).toString() : '#');
+    const anchor = document.createElement('a');
+    anchor.className='btn'; anchor.textContent='Download'; anchor.href = rawHref; anchor.download = d.filename; anchor.rel='noopener';
+    // Secondary: Force Save (blob) for stubborn browsers
+    const forceBtn = document.createElement('button');
+    forceBtn.className='btn'; forceBtn.textContent='Force Save';
+    forceBtn.addEventListener('click', ()=>forceSave(d.paths, d.filename, forceBtn));
+
+    right.append(anchor, forceBtn);
+
+    row.append(left, right);
+    els.list.appendChild(row);
+
+    // Debug reachability
+    const variants = [
+      ['Raw', d.paths.raw],
+      ['Pages', d.paths.pages],
+      ['Local', d.paths.local ? new URL(d.paths.local, location.href).toString() : null],
+    ];
+    for (const [label,url] of variants){
       if (!url) continue;
-      let status='…'; try{ status = (await tryHead(url)) ? '✅' : '⚠️ (HEAD failed)'; }catch{ status='⚠️'; }
-      const p=document.createElement('p'); p.innerHTML=`• <b>${d.label}</b> – ${label}: <a href="${url}" target="_blank" rel="noopener">${url}</a> ${status}`;
+      let status='…'; try{ status = (await headOk(url)) ? '✅' : '⚠️ (HEAD failed)'; }catch{ status='⚠️'; }
+      const p=document.createElement('p');
+      p.innerHTML = `• <b>${d.label}</b> – ${label}: <a href="${url}" target="_blank" rel="noopener">${url}</a> ${status}`;
       els.debug.appendChild(p);
     }
   }
