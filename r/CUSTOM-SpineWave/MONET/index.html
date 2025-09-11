@@ -47,12 +47,20 @@
   </header>
 
   <div class="grid" id="mainGrid">
-    <!-- LEFT: YouTube (hidden automatically if YT_ID is blank) -->
+    <!-- LEFT: YouTube -->
     <section class="card" aria-label="Video" id="videoCard">
       <div class="head"><h2 style="margin:0;font-size:14px">MONET — TRAINING VIDEO</h2></div>
       <div class="frame">
-        <iframe id="yt" title="YouTube video" allow="autoplay; encrypted-media; picture-in-picture; web-share"
-                allowfullscreen loading="lazy" referrerpolicy="strict-origin-when-cross-origin"></iframe>
+        <iframe 
+          id="yt" 
+          width="560" height="315"
+          src="https://www.youtube.com/embed/9JagMoHis1Q?si=4qBVLRHUcMuqqfF0"
+          title="YouTube video player" 
+          frameborder="0" 
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+          referrerpolicy="strict-origin-when-cross-origin" 
+          allowfullscreen>
+        </iframe>
       </div>
     </section>
 
@@ -66,6 +74,56 @@
   <footer><span class="muted">Files served from GitHub Releases (stable, LFS-proof).</span></footer>
 </div>
 
+<script>
+/* ============================= CONFIG ============================= */
+const OWNER_REPO = "ctlamedicamarketing/qr-redirects";
+const TAG        = "monet-1.0";
+
+/* Asset filenames exactly as listed on the Release page */
+const DOCS = [
+  {
+    label: "MONET — Surgical Technique Guide (STG)",
+    file:  "MONET-STG.pdf",
+    desc:  "Complete technique steps, instrumentation, and intraoperative guidance."
+  },
+  {
+    label: "MONET — Overview (Archive • 2021-02-08)",
+    file:  "OVR-MONET-20210208.pdf",
+    desc:  "Earlier overview for historical reference."
+  }
+];
+/* =========================== END CONFIG =========================== */
+
+const releaseUrl = (file) =>
+  `https://github.com/${OWNER_REPO}/releases/download/${encodeURIComponent(TAG)}/${encodeURIComponent(file)}`;
+
+(function renderDownloads(){
+  const list = document.getElementById('docList');
+  DOCS.forEach(d=>{
+    const row = document.createElement('div');
+    row.className = 'item';
+
+    const left = document.createElement('div');
+    const title = document.createElement('h3');
+    title.textContent = d.label;
+    const desc = document.createElement('p');
+    desc.textContent = d.desc || "";
+    left.append(title, desc);
+
+    const a = document.createElement('a');
+    a.href = releaseUrl(d.file);
+    a.className = 'btn';
+    a.download = d.file;
+    a.rel = 'noopener';
+    a.textContent = 'Download';
+
+    row.append(left, a);
+    list.appendChild(row);
+  });
+})();
+</script>
+</body>
+</html>
 <script>
 /* ============================= CONFIG =============================
    Paste a YouTube ID when you have a MONET video; leave "" to hide video.
