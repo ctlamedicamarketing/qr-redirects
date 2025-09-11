@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>KLIMT — Video + PDF Downloads</title>
+  <title>KLIMT — Video + Tabs PDF Viewer + Downloads</title>
   <meta name="robots" content="noindex, nofollow" />
   <style>
     :root{
@@ -29,12 +29,17 @@
          color:var(--ink);padding:8px 12px;border-radius:10px;cursor:pointer;font-weight:600;text-decoration:none}
     .btn:hover{border-color:var(--accent)}
     .muted{color:var(--muted)}
-    footer{display:flex;justify-content:flex-end;padding-top:8px;border-top:1px solid var(--stroke)}
+    footer{display:flex;justify-content:space-between;align-items:center;padding-top:8px;border-top:1px solid var(--stroke)}
+    /* Tabs */
+    .tabs{display:flex;gap:8px;flex-wrap:wrap;padding:8px 12px;border-bottom:1px solid var(--stroke)}
+    .tab{border:1px solid var(--stroke);background:#0f1320;color:var(--ink);border-radius:999px;padding:7px 10px;cursor:pointer;font-weight:600}
+    .tab.active,.tab:hover{border-color:var(--accent)}
+    .viewerBar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:10px 12px;border-top:1px solid var(--stroke)}
   </style>
 </head>
 <body>
 <div class="wrap">
-  <header><h1>KLIMT — Video & PDF Downloads</h1></header>
+  <header><h1>KLIMT — Video, Viewer & Downloads</h1></header>
 
   <div class="grid">
     <!-- LEFT: YouTube -->
@@ -44,60 +49,131 @@
         <iframe id="yt" title="YouTube video" allow="autoplay; encrypted-media; picture-in-picture; web-share"
                 allowfullscreen loading="lazy" referrerpolicy="strict-origin-when-cross-origin"></iframe>
       </div>
+
+      <!-- Simple downloads list -->
+      <div class="list" id="downloadList" aria-live="polite"></div>
     </section>
 
-    <!-- RIGHT: Release-based Downloads -->
+    <!-- RIGHT: PDF Tabs + Viewer -->
     <section class="card" aria-label="Documents">
-      <div class="head"><h2 style="margin:0;font-size:14px">Downloads (Release CDN)</h2></div>
-      <div id="docList" class="list" aria-live="polite"></div>
+      <div class="head"><h2 style="margin:0;font-size:14px">PDF Viewer (Tabs)</h2></div>
+
+      <div class="tabs" id="tabs" role="tablist" aria-label="PDF tabs"></div>
+
+      <div class="frame" style="aspect-ratio:auto;min-height:520px;flex:1 1 auto;background:#0a0d14">
+        <iframe id="pdfFrame" title="PDF viewer" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+      </div>
+
+      <div class="viewerBar">
+        <span id="currentTitle" class="muted">—</span>
+        <span style="flex:1"></span>
+        <a id="openInNew" class="btn" target="_blank" rel="noopener">Open Viewer</a>
+        <a id="downloadBtn" class="btn" download>Download</a>
+      </div>
     </section>
   </div>
 
-  <footer><span class="muted">Files served from GitHub Releases (stable, LFS-proof).</span></footer>
+  <footer>
+    <span class="muted">Viewer: pdf.js (local). Files: GitHub Releases CDN (stable, LFS-proof).</span>
+    <span class="muted">Tip: Use the Download button for a direct file save.</span>
+  </footer>
 </div>
 
 <script>
 /* ============================= CONFIG ============================= */
 const YT_ID = "cLHOGWiA6YQ";
 
-// Release details — bump TAG when you publish new assets (e.g., "klimt-1.1")
+// Where your local pdf.js viewer lives (relative to THIS page)
+const PDFJS_VIEWER = "vendor/pdfjs/web/viewer.html";
+
+// GitHub Releases info — bump TAG when you ship new assets
 const OWNER_REPO = "ctlamedicamarketing/qr-redirects";
 const TAG        = "klimt-1.0";
 
-// Exact filenames from your release screenshot
+// Exact filenames in the release
 const DOCS = [
-  { label:"KLIMT STG",                    file:"KLIMT-STG.pdf" },
-  { label:"Klimt Expansion Table",        file:"Klimt.Expansion.table-resized-ab3.pdf" },
-  { label:"Klimt Expansion Table & Tips", file:"Klimt.Expansion.table.and.Tips-resized-ab3.pdf" },
-  { label:"KLIMT Overview",               file:"KLIMT.Overview.V2.pdf" }
+  { key:"stg",     label:"KLIMT STG",                    file:"KLIMT-STG.pdf" },
+  { key:"table",   label:"Klimt Expansion Table",        file:"Klimt.Expansion.table-resized-ab3.pdf" },
+  { key:"tips",    label:"Klimt Expansion Table & Tips", file:"Klimt.Expansion.table.and.Tips-resized-ab3.pdf" },
+  { key:"overview",label:"KLIMT Overview",               file:"KLIMT.Overview.V2.pdf" }
 ];
+const DEFAULT_KEY = "stg";
 /* =========================== END CONFIG =========================== */
 
-// Build a Release download URL
-const releaseUrl = (file) =>
-  `https://github.com/${OWNER_REPO}/releases/download/${encodeURIComponent(TAG)}/${encodeURIComponent(file)}`;
+// --- URL builders ---
+const releaseUrl = f => `https://github.com/${OWNER_REPO}/releases/download/${encodeURIComponent(TAG)}/${encodeURIComponent(f)}`;
+const viewerUrl  = (fileUrl, page=1) => {
+  const abs = encodeURIComponent(fileUrl);
+  return `${PDFJS_VIEWER}?file=${abs}#pagemode=none&zoom=page-fit&page=${page}`;
+};
 
-// Populate list
+// --- DOM refs ---
+const els = {
+  tabs: document.getElementById('tabs'),
+  frame: document.getElementById('pdfFrame'),
+  title: document.getElementById('currentTitle'),
+  openInNew: document.getElementById('openInNew'),
+  downloadBtn: document.getElementById('downloadBtn'),
+  dlList: document.getElementById('downloadList'),
+};
+
+// Build downloads list (left card)
 (function renderDownloads(){
-  const list = document.getElementById('docList');
   DOCS.forEach(d=>{
-    const row = document.createElement('div');
-    row.className = 'item';
-
-    const title = document.createElement('h3');
-    title.textContent = d.label;
-
+    const row = document.createElement('div'); row.className='item';
+    const h = document.createElement('h3'); h.textContent = d.label;
     const a = document.createElement('a');
-    a.href = releaseUrl(d.file);
-    a.className = 'btn';
-    a.download = d.file;          // hint; some browsers may still preview
-    a.rel = 'noopener';
-    a.textContent = 'Download';
-
-    row.append(title, a);
-    list.appendChild(row);
+    a.className='btn'; a.textContent='Download';
+    a.href = releaseUrl(d.file); a.download = d.file; a.rel='noopener';
+    row.append(h,a); els.dlList.appendChild(row);
   });
 })();
+
+// Build tabs and hook up viewer (right card)
+let currentKey = DEFAULT_KEY;
+
+function selectDoc(key, page=1){
+  const doc = DOCS.find(d=>d.key===key) || DOCS[0];
+  const fileUrl = releaseUrl(doc.file);
+  const vUrl    = viewerUrl(fileUrl, page);
+
+  els.frame.src = vUrl;
+  els.title.textContent = doc.label;
+  els.openInNew.href = vUrl;
+  els.downloadBtn.href = fileUrl;
+  els.downloadBtn.download = doc.file;
+
+  // mark active tab
+  [...els.tabs.children].forEach(b=>b.classList.toggle('active', b.dataset.key===doc.key));
+  currentKey = doc.key;
+
+  // update hash (deep-linking)
+  const p = new URLSearchParams(location.hash.slice(1));
+  p.set('doc', doc.key); p.set('page', String(page));
+  location.hash = p.toString();
+}
+
+(function renderTabs(){
+  DOCS.forEach(d=>{
+    const b = document.createElement('button');
+    b.className='tab'; b.textContent=d.label; b.dataset.key=d.key; b.role='tab';
+    b.addEventListener('click', ()=>selectDoc(d.key, 1));
+    els.tabs.appendChild(b);
+  });
+
+  // initial from hash (doc/page), else default
+  const q = new URLSearchParams(location.hash.slice(1));
+  const k = q.get('doc') || DEFAULT_KEY;
+  const p = parseInt(q.get('page')||'1',10) || 1;
+  selectDoc(k, p);
+})();
+
+window.addEventListener('hashchange', ()=>{
+  const q = new URLSearchParams(location.hash.slice(1));
+  const k = q.get('doc') || currentKey;
+  const p = parseInt(q.get('page')||'1',10) || 1;
+  if (k!==currentKey) selectDoc(k,p);
+});
 
 // YouTube embed (loop via playlist trick)
 (function initYouTube(){
