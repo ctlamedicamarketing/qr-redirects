@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>KLIMT • Video + PDFs</title>
+<title>KLIMT • Video + PDF Downloads</title>
 <meta name="robots" content="noindex, nofollow" />
 <style>
   :root{
@@ -29,16 +29,15 @@
   .frame{position:relative;aspect-ratio:16/9;width:100%;background:#000}
   .frame > iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
   .bar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:10px 12px;border-top:1px solid var(--stroke)}
-  .seg{display:inline-flex;border:1px solid var(--stroke);border-radius:10px;overflow:hidden}
-  .seg button{background:#0f1320;color:var(--ink);border:0;padding:7px 10px;font-weight:600;cursor:pointer}
-  .seg button.active{background:#141823}
   .pill{display:inline-flex;gap:8px;align-items:center;border:1px solid var(--stroke);background:#0f1320;border-radius:999px;padding:6px 10px}
   .muted{color:var(--muted)}
   .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
-  select, input[type="number"]{background:#0f1320;color:var(--ink);border:1px solid var(--stroke);border-radius:8px;padding:7px 10px}
   .chips{display:flex;flex-wrap:wrap;gap:8px;padding:10px 12px}
-  .chip{border:1px solid var(--stroke);background:#0f1320;border-radius:999px;padding:6px 10px;cursor:pointer}
-  .chip.active,.chip:hover{border-color:var(--accent)}
+  .chip{border:1px solid var(--stroke);background:#0f1320;border-radius:999px;padding:6px 10px;cursor:pointer;text-decoration:none}
+  .chip:hover{border-color:var(--accent)}
+  .list{padding:12px; display:grid; gap:12px}
+  .item{display:flex;align-items:center;gap:12px;flex-wrap:wrap;border:1px solid var(--stroke);border-radius:12px;padding:10px}
+  .item h3{margin:0;font-size:14px}
   details.debug{padding:8px 12px;border-top:1px dashed var(--stroke);font-size:12px;color:var(--muted)}
   footer{display:flex;justify-content:space-between;gap:10px;align-items:center;padding-top:8px;border-top:1px solid var(--stroke)}
 </style>
@@ -48,7 +47,7 @@
 
   <!-- Top -->
   <header class="app">
-    <h1>KLIMT — Video & Documents</h1>
+    <h1>KLIMT — Video & PDF Downloads</h1>
     <nav class="nav">
       <a class="btn" href="../">Home</a>
       <a class="btn" href="https://ctlamedica.com" target="_blank" rel="noopener">CTL Amedica</a>
@@ -67,49 +66,29 @@
       </div>
       <div class="bar">
         <div class="row">
-          <button id="playBtn" class="btn">Play</button>
-          <button id="pauseBtn" class="btn">Pause</button>
+          <button id="playBtn" class="btn" type="button">Play</button>
+          <button id="pauseBtn" class="btn" type="button">Pause</button>
         </div>
-        <span class="muted">Loops via <code>loop=1&playlist=VIDEO_ID</code></span>
+        <span class="muted">Tip: loop is enabled via <code>loop=1&playlist=VIDEO_ID</code></span>
       </div>
     </section>
 
-    <!-- Right: PDFs -->
+    <!-- Right: PDFs (button links, no viewer) -->
     <section class="card" aria-label="Documents">
       <div class="head">
-        <h2 id="docTitle">Document</h2>
-        <div class="row">
-          <div class="seg" role="tablist" aria-label="Viewer mode">
-            <button id="modeAuto"   class="active" title="Prefer PDF.js">Auto</button>
-            <button id="modePdfjs"              title="Force PDF.js">PDF.js</button>
-            <button id="modeNative"             title="Browser viewer">Native</button>
-          </div>
-          <a id="openTab" class="btn" target="_blank" rel="noopener">Open</a>
-        </div>
+        <h2>Documents</h2>
+        <!-- OPTIONAL: if you upload a ZIP with all PDFs, set href below -->
+        <a id="openAllZip" class="btn muted" style="display:none" target="_blank" rel="noopener">Download All (ZIP)</a>
       </div>
 
-      <!-- Document chooser: chips for desktop, select for mobile -->
+      <!-- Optional quick chips linking directly to PDFs -->
       <div class="chips" id="chips"></div>
-      <div class="bar">
-        <label class="pill">
-          <span>Document</span>
-          <select id="docSelect" aria-label="Choose document"></select>
-        </label>
-        <label class="pill">
-          <span>Page</span>
-          <input id="pageInput" type="number" min="1" step="1" value="1" style="width:80px" />
-          <button id="goBtn" class="btn">Go</button>
-        </label>
-        <div class="row">
-          <button id="prevBtn" class="btn">◀ Prev</button>
-          <button id="nextBtn" class="btn">Next ▶</button>
-        </div>
-        <span class="muted" id="modeHint">Auto (PDF.js preferred)</span>
-      </div>
 
-      <div class="frame" style="aspect-ratio:auto;min-height:420px;flex:1 1 auto;background:#0a0d14">
-        <iframe id="pdfFrame" title="PDF" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+      <!-- Button list -->
+      <div class="bar">
+        <span class="muted">Click a document to open in a new tab, or use “Download” to save it.</span>
       </div>
+      <div id="docList" class="list" aria-live="polite"></div>
 
       <details class="debug" id="debug">
         <summary>Debug links</summary>
@@ -120,7 +99,7 @@
 
   <!-- Bottom -->
   <footer>
-    <div class="muted">Tip: Click “Native” if PDF.js is missing; it will still render.</div>
+    <div class="muted">Files are served directly; no embedded viewer required.</div>
     <div class="row">
       <a class="btn" href="../">Home</a>
       <a class="btn" href="https://ctlamedica.com" target="_blank" rel="noopener">CTL Amedica</a>
@@ -129,27 +108,52 @@
 </div>
 
 <script>
-  /* ========= CONFIG (edit these) ========= */
+  /* ========================== CONFIG — EDIT THESE ==========================
+   *
+   * 1) YOUTUBE VIDEO
+   *    - Replace YT_ID with the 11-character ID from your video URL.
+   *      Ex: https://www.youtube.com/watch?v=cLHOGWiA6YQ -> "cLHOGWiA6YQ"
+   *
+   * 2) PDF LOCATIONS (DOCS array)
+   *    Choose ONE of these styles per 'path':
+   *      a) Relative (PDFs live next to this HTML or in a subfolder):
+   *           "KLIMT-STG.pdf"            or "docs/KLIMT-STG.pdf"
+   *      b) Site-root (GitHub Pages):
+   *           "/qr-redirects/docs/KLIMT-STG.pdf"
+   *      c) Raw GitHub (direct file in repo, not Pages):
+   *           "https://raw.githubusercontent.com/<user>/<repo>/<branch>/<path/to/file.pdf>"
+   *
+   *    NOTE: Filenames on GitHub Pages are case-sensitive.
+   *
+   * 3) OPTIONAL "DOWNLOAD ALL (ZIP)"
+   *    - If you upload a bundle ZIP, set ZIP_ALL to its URL and the button will appear.
+   *      Ex (Pages): "/qr-redirects/docs/klimt-all.zip"
+   *      Ex (raw GitHub): "https://raw.githubusercontent.com/.../klimt-all.zip"
+   * ======================================================================= */
+
+  // 1) YOUTUBE — EDIT
   const YT_ID = "cLHOGWiA6YQ";
 
-  // Option 2: viewer lives next to this page inside vendor/pdfjs/web/
-  // (We also keep a site-root fallback in case you later add a global copy.)
-  const VIEWER_CANDIDATES = [
-    "vendor/pdfjs/web/viewer.html",                 // ./vendor/pdfjs/web/viewer.html
-    "/qr-redirects/vendor/pdfjs/web/viewer.html"    // optional global fallback
-  ];
-
-  // PDFs in the SAME folder as this HTML file (case-sensitive)
+  // 2) DOCS — EDIT labels + paths
   const DOCS = [
     { key:"klimt-stg",                      label:"KLIMT STG",                    path:"KLIMT-STG.pdf" },
     { key:"klimt-expansion-table-and-tips", label:"Klimt Expansion Table & Tips", path:"Klimt-Expansion-table-and-Tips.pdf" },
     { key:"klimt-expansion-table",          label:"Klimt Expansion Table",        path:"Klimt-Expansion-table.pdf" }
+    // Add more like:
+    // { key:"brochure", label:"KLIMT Brochure", path:"/qr-redirects/docs/klimt-brochure.pdf" },
+    // { key:"specs",    label:"KLIMT Specs",    path:"https://raw.githubusercontent.com/<user>/<repo>/<branch>/docs/specs.pdf" }
   ];
+
+  // 3) OPTIONAL ZIP — EDIT (or leave as null to hide the button)
+  const ZIP_ALL = null; // e.g., "/qr-redirects/docs/klimt-all.zip"
+
+  // Optional: keep old deep links working if you’ve used hash routes before
   const ALIASES = { "klimt-training":"klimt-stg", "klimt-stg-367003-0904":"klimt-stg" };
   const DEFAULT_KEY = "klimt-stg";
-  /* ====================================== */
 
-  // YouTube
+  /* ============================ END CONFIG ============================ */
+
+  // --------- YouTube (unchanged embedding) ----------
   (function initYouTube(){
     const yt = document.getElementById('yt');
     const origin = location.origin;
@@ -163,79 +167,11 @@
     document.getElementById('pauseBtn').addEventListener('click',()=>post('pauseVideo'));
   })();
 
-  // PDF viewer
-  const els = {
-    pdfFrame:  document.getElementById("pdfFrame"),
-    docTitle:  document.getElementById("docTitle"),
-    modeHint:  document.getElementById("modeHint"),
-    openTab:   document.getElementById("openTab"),
-    docSelect: document.getElementById("docSelect"),
-    chips:     document.getElementById("chips"),
-    pageInput: document.getElementById("pageInput"),
-    debugBody: document.getElementById("debugBody"),
-    modeBtns: {
-      auto:   document.getElementById("modeAuto"),
-      pdfjs:  document.getElementById("modePdfjs"),
-      native: document.getElementById("modeNative")
-    },
-    prevBtn: document.getElementById("prevBtn"),
-    nextBtn: document.getElementById("nextBtn"),
-    goBtn:   document.getElementById("goBtn"),
-  };
-
-  const encodePath = p => p.split('/').map(encodeURIComponent).join('/');
-  const getHash = (name, fallback)=>{
-    const params = new URLSearchParams(location.hash.slice(1));
-    return params.get(name) ?? fallback;
-  };
-  const setHash = (key, page)=>{
-    const params = new URLSearchParams(location.hash.slice(1));
-    params.set("doc", key);
-    params.set("page", String(page));
-    location.hash = params.toString();
-  };
-
-  let currentDocKey = DEFAULT_KEY;
-  let currentPage   = 1;
-  let viewMode      = 'auto';
-  let viewerPath    = null; // resolved candidate or null
-
-  // Build document chips + select
-  function populateDocs(){
-    DOCS.forEach(d=>{
-      const opt = document.createElement("option");
-      opt.value = d.key; opt.textContent = d.label;
-      els.docSelect.appendChild(opt);
-
-      const c = document.createElement("button");
-      c.className = "chip";
-      c.textContent = d.label;
-      c.addEventListener("click", ()=>setHash(d.key, 1));
-      els.chips.appendChild(c);
-    });
-  }
-
-  function markActiveChip(){
-    [...els.chips.children].forEach(n=>n.classList.toggle("active", n.textContent===resolveDoc(currentDocKey).label));
-  }
-
-  function resolveDoc(key){
-    return DOCS.find(d=>d.key===key) || DOCS.find(d=>d.key===DEFAULT_KEY);
-  }
-
-  function buildNativeSrc(path, page){
-    return `${encodePath(path)}#page=${page}&zoom=page-fit`;
-  }
-
-  // Option 2: build absolute file URL from THIS PAGE'S directory (prevents // and folder mismatches)
-  function buildPdfjsSrc(viewer, path, page){
-    const baseDir = location.origin + location.pathname.replace(/[^/]*$/, ''); // this page's folder
-    const fileURL = baseDir + encodePath(path);
-    return `${viewer}?file=${encodeURIComponent(fileURL)}#pagemode=none&zoom=page-fit&page=${page}`;
-  }
-
-  function debug(html){
-    els.debugBody.innerHTML = html;
+  // --------- Helpers ----------
+  function absUrl(p){
+    // new URL handles absolute URLs and resolves relative ones against the current page
+    try { return new URL(p, location.href).toString(); }
+    catch { return p; }
   }
 
   async function headOk(url){
@@ -245,98 +181,87 @@
     }catch{ return false; }
   }
 
-  async function resolveViewer(){
-    if (viewerPath !== null) return viewerPath;
-    for (const cand of VIEWER_CANDIDATES){
-      const abs = new URL(cand, location.href).toString();
-      if (await headOk(abs)){ viewerPath = cand; return viewerPath; }
+  // --------- Build UI ----------
+  const els = {
+    chips:     document.getElementById("chips"),
+    docList:   document.getElementById("docList"),
+    debugBody: document.getElementById("debugBody"),
+    openAll:   document.getElementById("openAllZip")
+  };
+
+  // Show/hide "Download All" button
+  (function initZip(){
+    if (ZIP_ALL) {
+      els.openAll.href = absUrl(ZIP_ALL);
+      els.openAll.style.display = "";
     }
-    viewerPath = null;
-    return null;
+  })();
+
+  function addDocRow(d, url){
+    const row = document.createElement("div");
+    row.className = "item";
+
+    const title = document.createElement("h3");
+    title.textContent = d.label;
+
+    const open = document.createElement("a");
+    open.className = "btn";
+    open.textContent = "Open";
+    open.href = url;
+    open.target = "_blank";
+    open.rel = "noopener";
+
+    const download = document.createElement("a");
+    download.className = "btn";
+    download.textContent = "Download";
+    download.href = url;
+    // download attr: browsers may ignore on cross-origin, but will still save on same-origin/Pages
+    download.setAttribute("download", d.label.replace(/\s+/g, "_") + ".pdf");
+
+    row.appendChild(title);
+    row.appendChild(open);
+    row.appendChild(download);
+    els.docList.appendChild(row);
   }
 
-  function updateModeButtons(){
-    Object.entries(els.modeBtns).forEach(([k,btn])=>{
-      btn.classList.toggle('active', k===viewMode || (viewMode==='auto' && k==='auto'));
-    });
-    els.modeHint.textContent =
-      viewMode==='native' ? 'Native mode' :
-      viewMode==='pdfjs'  ? 'PDF.js mode' :
-                            'Auto (PDF.js preferred)';
+  async function populateDocs(){
+    for (const d of DOCS){
+      const url = absUrl(d.path);
+
+      // Chip shortcut
+      const chip = document.createElement("a");
+      chip.className = "chip";
+      chip.textContent = d.label;
+      chip.href = url;
+      chip.target = "_blank";
+      chip.rel = "noopener";
+      els.chips.appendChild(chip);
+
+      // Buttons row
+      addDocRow(d, url);
+
+      // Debug line
+      const p = document.createElement("p");
+      const ok = await headOk(url);
+      p.innerHTML = `• <b>${d.label}</b>: <a href="${url}" target="_blank" rel="noopener">${url}</a> ${ok ? "✅" : "❌ (HEAD failed)"}`;
+      els.debugBody.appendChild(p);
+    }
   }
 
-  async function loadPage(page){
-    currentPage = Math.max(1, Number(page)||1);
-    const doc   = resolveDoc(currentDocKey);
-
-    // PDF existence
-    const absPdf = new URL(doc.path, location.href).toString();
-    const ok = await headOk(absPdf);
-    if (!ok){
-      els.pdfFrame.src = "about:blank";
-      els.docTitle.textContent = doc.label;
-      debug(`❌ PDF not found: <code>${doc.path}</code><br>
-             Tried: <a href="${absPdf}" target="_blank" rel="noopener">${absPdf}</a><br>
-             Check filename/case & that it lives next to this page.`);
-      updateModeButtons();
-      return;
-    }
-
-    // Decide mode
-    let modeToUse = viewMode;
-    if (viewMode==='auto'){
-      modeToUse = (await resolveViewer()) ? 'pdfjs' : 'native';
-    }
-
-    // Build URLs
-    const direct = encodePath(doc.path);
-    let src;
-    if (modeToUse==='pdfjs'){
-      const vp = await resolveViewer();
-      src = buildPdfjsSrc(vp, doc.path, currentPage);
-      els.openTab.href = src;
-    } else {
-      src = buildNativeSrc(doc.path, currentPage);
-      els.openTab.href = direct;
-    }
-
-    // Apply
-    els.pdfFrame.src = src;
-    els.docTitle.textContent = doc.label;
-    els.docSelect.value = doc.key;
-    els.pageInput.value = String(currentPage);
-    markActiveChip();
-
-    const viewerResolved = viewerPath ? new URL(viewerPath, location.href).toString() : '—';
-    debug(`Mode: <b>${modeToUse}</b><br>
-           Viewer: ${viewerPath ? `<a href="${viewerResolved}" target="_blank" rel="noopener">${viewerResolved}</a>` : '—'}<br>
-           Iframe: <a href="${src}" target="_blank" rel="noopener">${src}</a><br>
-           Direct: <a href="${absPdf}" target="_blank" rel="noopener">${absPdf}</a>`);
-    updateModeButtons();
+  // Optional: read hash (?doc=key) for deep links, but we don't need it for downloads
+  function getHash(name, fallback){
+    const params = new URLSearchParams(location.hash.slice(1));
+    return params.get(name) ?? fallback;
   }
+  (function applyAlias(){
+    const raw = decodeURIComponent(getHash("doc", DEFAULT_KEY));
+    const key = ALIASES[raw] || raw;
+    // No UI switching needed—aliases exist to keep old links alive
+    void key; // no-op: here for future expansion
+  })();
 
-  function applyFromHash(){
-    const raw  = decodeURIComponent(getHash("doc", DEFAULT_KEY));
-    const key  = ALIASES[raw] || raw;
-    const page = parseInt(getHash("page", "1"), 10) || 1;
-    currentDocKey = key;
-    currentPage   = Math.max(1, page);
-    loadPage(currentPage);
-  }
-
-  // Wire UI
   populateDocs();
-  document.getElementById("modeAuto").addEventListener('click', ()=>{ viewMode='auto';   loadPage(currentPage); });
-  document.getElementById("modePdfjs").addEventListener('click',()=>{ viewMode='pdfjs';  loadPage(currentPage); });
-  document.getElementById("modeNative").addEventListener('click',()=>{ viewMode='native';loadPage(currentPage); });
-
-  els.prevBtn.addEventListener('click', ()=> setHash(currentDocKey, Math.max(1, currentPage-1)));
-  els.nextBtn.addEventListener('click', ()=> setHash(currentDocKey, currentPage+1));
-  els.goBtn  .addEventListener('click', ()=> setHash(currentDocKey, Math.max(1, parseInt(els.pageInput.value||"1",10))));
-  els.docSelect.addEventListener('change', e=> setHash(e.target.value, 1));
-
-  window.addEventListener('hashchange', applyFromHash);
-  applyFromHash();
 </script>
 </body>
 </html>
+
