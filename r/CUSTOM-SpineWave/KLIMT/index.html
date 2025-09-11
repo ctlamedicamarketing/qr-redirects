@@ -3,13 +3,10 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>KLIMT — Video + Tabs PDF Viewer + Downloads</title>
+  <title>KLIMT — Video, Tabs PDF Preview & Downloads</title>
   <meta name="robots" content="noindex, nofollow" />
   <style>
-    :root{
-      --bg:#0b0c10; --panel:#0d111a; --ink:#e8eaed; --muted:#9aa0a6;
-      --stroke:#1e2330; --accent:#ffc81a;
-    }
+    :root{--bg:#0b0c10;--panel:#0d111a;--ink:#e8eaed;--muted:#9aa0a6;--stroke:#1e2330;--accent:#ffc81a}
     *{box-sizing:border-box}
     html,body{height:100%;margin:0;background:var(--bg);color:var(--ink);
               font:15px/1.45 system-ui,-apple-system,Segoe UI,Roboto,Arial}
@@ -54,28 +51,28 @@
       <div class="list" id="downloadList" aria-live="polite"></div>
     </section>
 
-    <!-- RIGHT: PDF Tabs + Viewer -->
+    <!-- RIGHT: PDF Tabs + Preview (pdf.js when possible, else native) -->
     <section class="card" aria-label="Documents">
-      <div class="head"><h2 style="margin:0;font-size:14px">PDF Viewer (Tabs)</h2></div>
+      <div class="head"><h2 style="margin:0;font-size:14px">PDF Preview (Tabs)</h2></div>
 
       <div class="tabs" id="tabs" role="tablist" aria-label="PDF tabs"></div>
 
       <div class="frame" style="aspect-ratio:auto;min-height:520px;flex:1 1 auto;background:#0a0d14">
-        <iframe id="pdfFrame" title="PDF viewer" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+        <iframe id="pdfFrame" title="PDF preview" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
       </div>
 
       <div class="viewerBar">
         <span id="currentTitle" class="muted">—</span>
         <span style="flex:1"></span>
-        <a id="openInNew" class="btn" target="_blank" rel="noopener">Open Viewer</a>
+        <a id="openInNew" class="btn" target="_blank" rel="noopener">Open Preview</a>
         <a id="downloadBtn" class="btn" download>Download</a>
       </div>
     </section>
   </div>
 
   <footer>
-    <span class="muted">Viewer: pdf.js (local). Files: GitHub Releases CDN (stable, LFS-proof).</span>
-    <span class="muted">Tip: Use the Download button for a direct file save.</span>
+    <span class="muted">Preview uses pdf.js for same-origin files; falls back to the browser’s native viewer for cross-origin Release assets.</span>
+    <span class="muted">Downloads use GitHub Releases (stable, LFS-proof).</span>
   </footer>
 </div>
 
@@ -83,14 +80,14 @@
 /* ============================= CONFIG ============================= */
 const YT_ID = "cLHOGWiA6YQ";
 
-// Where your local pdf.js viewer lives (relative to THIS page)
+// pdf.js viewer location (relative to THIS page). Works only when the PDF URL is same-origin/CORS-enabled.
 const PDFJS_VIEWER = "vendor/pdfjs/web/viewer.html";
 
-// GitHub Releases info — bump TAG when you ship new assets
+// Release info — bump TAG when you publish new assets
 const OWNER_REPO = "ctlamedicamarketing/qr-redirects";
 const TAG        = "klimt-1.0";
 
-// Exact filenames in the release
+// Exact filenames in the release (case-sensitive)
 const DOCS = [
   { key:"stg",     label:"KLIMT STG",                    file:"KLIMT-STG.pdf" },
   { key:"table",   label:"Klimt Expansion Table",        file:"Klimt.Expansion.table-resized-ab3.pdf" },
@@ -100,12 +97,14 @@ const DOCS = [
 const DEFAULT_KEY = "stg";
 /* =========================== END CONFIG =========================== */
 
-// --- URL builders ---
+// --- URL helpers ---
 const releaseUrl = f => `https://github.com/${OWNER_REPO}/releases/download/${encodeURIComponent(TAG)}/${encodeURIComponent(f)}`;
-const viewerUrl  = (fileUrl, page=1) => {
-  const abs = encodeURIComponent(fileUrl);
-  return `${PDFJS_VIEWER}?file=${abs}#pagemode=none&zoom=page-fit&page=${page}`;
+const sameOrigin = url => {
+  try { return new URL(url, location.href).origin === location.origin; }
+  catch { return false; }
 };
+const buildPdfjsUrl  = (fileUrl, page=1) => `${PDFJS_VIEWER}?file=${encodeURIComponent(fileUrl)}#pagemode=none&zoom=page-fit&page=${page}`;
+const buildNativeUrl = (fileUrl, page=1) => `${fileUrl}#page=${page}&zoom=page-fit`;
 
 // --- DOM refs ---
 const els = {
@@ -129,25 +128,29 @@ const els = {
   });
 })();
 
-// Build tabs and hook up viewer (right card)
+// Build tabs and hook up preview (right card)
 let currentKey = DEFAULT_KEY;
 
 function selectDoc(key, page=1){
   const doc = DOCS.find(d=>d.key===key) || DOCS[0];
   const fileUrl = releaseUrl(doc.file);
-  const vUrl    = viewerUrl(fileUrl, page);
 
-  els.frame.src = vUrl;
+  // pdf.js requires same-origin or CORS; GitHub Releases do NOT send CORS.
+  const canUsePdfjs = sameOrigin(fileUrl); // true only if you switch to hosting PDFs on Pages/same origin
+  const previewUrl  = canUsePdfjs ? buildPdfjsUrl(fileUrl, page)
+                                  : buildNativeUrl(fileUrl, page);
+
+  els.frame.src = previewUrl;
   els.title.textContent = doc.label;
-  els.openInNew.href = vUrl;
-  els.downloadBtn.href = fileUrl;
+  els.openInNew.href = previewUrl;   // opens the same preview in a new tab
+  els.downloadBtn.href = fileUrl;    // direct binary CDN
   els.downloadBtn.download = doc.file;
 
   // mark active tab
   [...els.tabs.children].forEach(b=>b.classList.toggle('active', b.dataset.key===doc.key));
   currentKey = doc.key;
 
-  // update hash (deep-linking)
+  // update hash for deep-links
   const p = new URLSearchParams(location.hash.slice(1));
   p.set('doc', doc.key); p.set('page', String(page));
   location.hash = p.toString();
