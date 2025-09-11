@@ -17,7 +17,6 @@
   .wrap{min-height:100%;display:grid;grid-template-rows:auto 1fr auto;gap:16px;max-width:1200px;margin:0 auto;padding:16px}
   header.app{display:flex;gap:10px;align-items:center;justify-content:space-between;padding-bottom:8px;border-bottom:1px solid var(--stroke)}
   header.app h1{margin:0;font-size:18px;font-weight:700;letter-spacing:.02em}
-  .nav{display:flex;gap:8px}
   .btn{appearance:none;border:1px solid var(--stroke);background:linear-gradient(180deg,#0f1320,#0b0f1b);
        color:var(--ink);padding:8px 12px;border-radius:10px;cursor:pointer;font-weight:600;text-decoration:none}
   .btn:hover{border-color:var(--accent)}
@@ -28,18 +27,12 @@
   .card .head h2{margin:0;font-size:14px;font-weight:700}
   .frame{position:relative;aspect-ratio:16/9;width:100%;background:#000}
   .frame > iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
-  .bar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:10px 12px;border-top:1px solid var(--stroke)}
-  .pill{display:inline-flex;gap:8px;align-items:center;border:1px solid var(--stroke);background:#0f1320;border-radius:999px;padding:6px 10px}
-  .muted{color:var(--muted)}
-  .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
-  .chips{display:flex;flex-wrap:wrap;gap:8px;padding:10px 12px}
-  .chip{border:1px solid var(--stroke);background:#0f1320;border-radius:999px;padding:6px 10px;cursor:pointer;text-decoration:none}
-  .chip:hover{border-color:var(--accent)}
   .list{padding:12px; display:grid; gap:12px}
   .item{display:flex;align-items:center;gap:12px;flex-wrap:wrap;border:1px solid var(--stroke);border-radius:12px;padding:10px}
   .item h3{margin:0;font-size:14px}
+  .muted{color:var(--muted)}
   details.debug{padding:8px 12px;border-top:1px dashed var(--stroke);font-size:12px;color:var(--muted)}
-  footer{display:flex;justify-content:space-between;gap:10px;align-items:center;padding-top:8px;border-top:1px solid var(--stroke)}
+  footer{display:flex;justify-content:flex-end;gap:10px;align-items:center;padding-top:8px;border-top:1px solid var(--stroke)}
 </style>
 </head>
 <body>
@@ -48,10 +41,6 @@
   <!-- Top -->
   <header class="app">
     <h1>KLIMT — Video & PDF Downloads</h1>
-    <nav class="nav">
-      <a class="btn" href="../">Home</a>
-      <a class="btn" href="https://ctlamedica.com" target="_blank" rel="noopener">CTL Amedica</a>
-    </nav>
   </header>
 
   <!-- Main -->
@@ -64,34 +53,18 @@
         <iframe id="yt" title="YouTube video" allow="autoplay; encrypted-media; picture-in-picture; web-share"
                 allowfullscreen loading="lazy" referrerpolicy="strict-origin-when-cross-origin"></iframe>
       </div>
-      <div class="bar">
-        <div class="row">
-          <button id="playBtn" class="btn" type="button">Play</button>
-          <button id="pauseBtn" class="btn" type="button">Pause</button>
-        </div>
-        <span class="muted">Tip: loop is enabled via <code>loop=1&playlist=VIDEO_ID</code></span>
-      </div>
     </section>
 
-    <!-- Right: PDFs (button links, no viewer) -->
+    <!-- Right: PDFs (only force-download buttons) -->
     <section class="card" aria-label="Documents">
       <div class="head">
         <h2>Documents</h2>
-        <!-- OPTIONAL: if you upload a ZIP with all PDFs, set href below -->
-        <a id="openAllZip" class="btn muted" style="display:none" target="_blank" rel="noopener">Download All (ZIP)</a>
       </div>
 
-      <!-- Optional quick chips linking directly to PDFs -->
-      <div class="chips" id="chips"></div>
-
-      <!-- Button list -->
-      <div class="bar">
-        <span class="muted">Click a document to open in a new tab, or use “Download” to save it.</span>
-      </div>
       <div id="docList" class="list" aria-live="polite"></div>
 
       <details class="debug" id="debug">
-        <summary>Debug links</summary>
+        <summary>Debug</summary>
         <div id="debugBody">Ready.</div>
       </details>
     </section>
@@ -99,11 +72,7 @@
 
   <!-- Bottom -->
   <footer>
-    <div class="muted">Files are served directly; no embedded viewer required.</div>
-    <div class="row">
-      <a class="btn" href="../">Home</a>
-      <a class="btn" href="https://ctlamedica.com" target="_blank" rel="noopener">CTL Amedica</a>
-    </div>
+    <div class="muted">Downloads use fetch+blob for reliable saving.</div>
   </footer>
 </div>
 
@@ -111,157 +80,144 @@
   /* ========================== CONFIG — EDIT THESE ==========================
    *
    * 1) YOUTUBE VIDEO
-   *    - Replace YT_ID with the 11-character ID from your video URL.
-   *      Ex: https://www.youtube.com/watch?v=cLHOGWiA6YQ -> "cLHOGWiA6YQ"
+   *    Replace YT_ID with the 11-character ID from your video URL.
+   *    Example: https://www.youtube.com/watch?v=cLHOGWiA6YQ -> "cLHOGWiA6YQ"
    *
    * 2) PDF LOCATIONS (DOCS array)
-   *    Choose ONE of these styles per 'path':
-   *      a) Relative (PDFs live next to this HTML or in a subfolder):
-   *           "KLIMT-STG.pdf"            or "docs/KLIMT-STG.pdf"
-   *      b) Site-root (GitHub Pages):
-   *           "/qr-redirects/docs/KLIMT-STG.pdf"
-   *      c) Raw GitHub (direct file in repo, not Pages):
-   *           "https://raw.githubusercontent.com/<user>/<repo>/<branch>/<path/to/file.pdf>"
+   *    Choose ONE style per 'path':
+   *      a) Relative (same folder or subfolder): "KLIMT-STG.pdf" or "docs/KLIMT-STG.pdf"
+   *      b) Site-root (GitHub Pages): "/qr-redirects/docs/KLIMT-STG.pdf"
+   *      c) Raw GitHub (direct file in repo): 
+   *         "https://raw.githubusercontent.com/<user>/<repo>/<branch>/<path/to/file.pdf>"
    *
-   *    NOTE: Filenames on GitHub Pages are case-sensitive.
-   *
-   * 3) OPTIONAL "DOWNLOAD ALL (ZIP)"
-   *    - If you upload a bundle ZIP, set ZIP_ALL to its URL and the button will appear.
-   *      Ex (Pages): "/qr-redirects/docs/klimt-all.zip"
-   *      Ex (raw GitHub): "https://raw.githubusercontent.com/.../klimt-all.zip"
+   *    IMPORTANT:
+   *      • Use **raw.githubusercontent.com** or **GitHub Pages** for cross-origin downloads.
+   *        (Do NOT use the GitHub “blob” page URLs—those are HTML pages and will fail.)
+   *      • Filenames on Pages are case-sensitive.
    * ======================================================================= */
 
-  // 1) YOUTUBE — EDIT
-  const YT_ID = "cLHOGWiA6YQ";
+  const YT_ID = "cLHOGWiA6YQ";  // <-- EDIT for your YouTube video
 
-  // 2) DOCS — EDIT labels + paths
   const DOCS = [
-    { key:"klimt-stg",                      label:"KLIMT STG",                    path:"KLIMT-STG.pdf" },
-    { key:"klimt-expansion-table-and-tips", label:"Klimt Expansion Table & Tips", path:"Klimt-Expansion-table-and-Tips.pdf" },
-    { key:"klimt-expansion-table",          label:"Klimt Expansion Table",        path:"Klimt-Expansion-table.pdf" }
-    // Add more like:
-    // { key:"brochure", label:"KLIMT Brochure", path:"/qr-redirects/docs/klimt-brochure.pdf" },
-    // { key:"specs",    label:"KLIMT Specs",    path:"https://raw.githubusercontent.com/<user>/<repo>/<branch>/docs/specs.pdf" }
+    { label:"KLIMT STG",                    path:"KLIMT-STG.pdf",                            filename:"KLIMT-STG.pdf" },
+    { label:"Klimt Expansion Table & Tips", path:"Klimt-Expansion-table-and-Tips.pdf",       filename:"Klimt-Expansion-Table-and-Tips.pdf" },
+    { label:"Klimt Expansion Table",        path:"Klimt-Expansion-table.pdf",                filename:"Klimt-Expansion-Table.pdf" }
+    // Add more:
+    // { label:"KLIMT Brochure", path:"/qr-redirects/docs/klimt-brochure.pdf", filename:"KLIMT-Brochure.pdf" }
   ];
-
-  // 3) OPTIONAL ZIP — EDIT (or leave as null to hide the button)
-  const ZIP_ALL = null; // e.g., "/qr-redirects/docs/klimt-all.zip"
-
-  // Optional: keep old deep links working if you’ve used hash routes before
-  const ALIASES = { "klimt-training":"klimt-stg", "klimt-stg-367003-0904":"klimt-stg" };
-  const DEFAULT_KEY = "klimt-stg";
 
   /* ============================ END CONFIG ============================ */
 
-  // --------- YouTube (unchanged embedding) ----------
+  // --------- YouTube init ----------
   (function initYouTube(){
     const yt = document.getElementById('yt');
     const origin = location.origin;
     const params = new URLSearchParams({
-      autoplay:'1', mute:'1', controls:'1', modestbranding:'1', rel:'0',
+      autoplay:'0', mute:'1', controls:'1', modestbranding:'1', rel:'0',
       playsinline:'1', loop:'1', playlist:YT_ID, enablejsapi:'1', origin
     });
     yt.src = `https://www.youtube.com/embed/${YT_ID}?` + params.toString();
-    const post = (func)=> yt.contentWindow?.postMessage(JSON.stringify({event:'command', func}),'*');
-    document.getElementById('playBtn').addEventListener('click', ()=>post('playVideo'));
-    document.getElementById('pauseBtn').addEventListener('click',()=>post('pauseVideo'));
   })();
 
   // --------- Helpers ----------
   function absUrl(p){
-    // new URL handles absolute URLs and resolves relative ones against the current page
     try { return new URL(p, location.href).toString(); }
     catch { return p; }
   }
 
+  // Try to infer a filename from headers or URL if none provided
+  function inferFilename(url, headers, fallback){
+    // Content-Disposition: attachment; filename="example.pdf"
+    const cd = headers.get('content-disposition');
+    if (cd) {
+      const m = cd.match(/filename\*?=(?:UTF-8''|")?([^\";]+)\"?/i);
+      if (m && m[1]) {
+        try { return decodeURIComponent(m[1]); } catch { return m[1]; }
+      }
+    }
+    // URL path segment
+    try {
+      const u = new URL(url);
+      const last = u.pathname.split('/').pop();
+      if (last && /\./.test(last)) return last;
+    } catch {}
+    return fallback || 'download.pdf';
+  }
+
+  // Force-download via fetch -> blob -> temporary object URL
+  async function forceDownload(url, suggestedName, btn){
+    const originalText = btn.textContent;
+    btn.textContent = "Downloading…";
+    btn.disabled = true;
+
+    try{
+      const res = await fetch(url, { mode:'cors', credentials:'omit', cache:'no-store' });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const blob = await res.blob();
+
+      const filename = inferFilename(url, res.headers, suggestedName);
+      const a = document.createElement('a');
+      const objectUrl = URL.createObjectURL(blob);
+      a.href = objectUrl;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(objectUrl);
+
+      btn.textContent = "Downloaded ✓";
+    } catch (err){
+      // Graceful fallback: open in a new tab (user can save manually)
+      console.warn('Force download failed, opening instead:', err);
+      window.open(url, '_blank', 'noopener');
+      btn.textContent = "Opened in new tab";
+    } finally {
+      setTimeout(()=>{ btn.textContent = originalText; btn.disabled = false; }, 1800);
+    }
+  }
+
   async function headOk(url){
     try{
-      const res = await fetch(url, {method:'HEAD', cache:'no-store'});
+      const res = await fetch(url, { method:'HEAD', cache:'no-store', mode:'cors' });
       return res.ok;
     }catch{ return false; }
   }
 
-  // --------- Build UI ----------
+  // --------- Build Download List ----------
   const els = {
-    chips:     document.getElementById("chips"),
     docList:   document.getElementById("docList"),
-    debugBody: document.getElementById("debugBody"),
-    openAll:   document.getElementById("openAllZip")
+    debugBody: document.getElementById("debugBody")
   };
-
-  // Show/hide "Download All" button
-  (function initZip(){
-    if (ZIP_ALL) {
-      els.openAll.href = absUrl(ZIP_ALL);
-      els.openAll.style.display = "";
-    }
-  })();
-
-  function addDocRow(d, url){
-    const row = document.createElement("div");
-    row.className = "item";
-
-    const title = document.createElement("h3");
-    title.textContent = d.label;
-
-    const open = document.createElement("a");
-    open.className = "btn";
-    open.textContent = "Open";
-    open.href = url;
-    open.target = "_blank";
-    open.rel = "noopener";
-
-    const download = document.createElement("a");
-    download.className = "btn";
-    download.textContent = "Download";
-    download.href = url;
-    // download attr: browsers may ignore on cross-origin, but will still save on same-origin/Pages
-    download.setAttribute("download", d.label.replace(/\s+/g, "_") + ".pdf");
-
-    row.appendChild(title);
-    row.appendChild(open);
-    row.appendChild(download);
-    els.docList.appendChild(row);
-  }
 
   async function populateDocs(){
     for (const d of DOCS){
       const url = absUrl(d.path);
 
-      // Chip shortcut
-      const chip = document.createElement("a");
-      chip.className = "chip";
-      chip.textContent = d.label;
-      chip.href = url;
-      chip.target = "_blank";
-      chip.rel = "noopener";
-      els.chips.appendChild(chip);
+      const row = document.createElement("div");
+      row.className = "item";
 
-      // Buttons row
-      addDocRow(d, url);
+      const title = document.createElement("h3");
+      title.textContent = d.label;
 
-      // Debug line
-      const p = document.createElement("p");
+      const download = document.createElement("button");
+      download.className = "btn";
+      download.type = "button";
+      download.textContent = "Download";
+      download.addEventListener('click', ()=> forceDownload(url, d.filename || (d.label.replace(/\s+/g,"_") + ".pdf"), download));
+
+      row.appendChild(title);
+      row.appendChild(download);
+      els.docList.appendChild(row);
+
+      // Debug info line (helpful during setup)
       const ok = await headOk(url);
-      p.innerHTML = `• <b>${d.label}</b>: <a href="${url}" target="_blank" rel="noopener">${url}</a> ${ok ? "✅" : "❌ (HEAD failed)"}`;
+      const p = document.createElement("p");
+      p.innerHTML = `• <b>${d.label}</b>: <a href="${url}" target="_blank" rel="noopener">${url}</a> ${ok ? "✅ reachable" : "⚠️ HEAD failed (check CORS/path)"}`
       els.debugBody.appendChild(p);
     }
   }
-
-  // Optional: read hash (?doc=key) for deep links, but we don't need it for downloads
-  function getHash(name, fallback){
-    const params = new URLSearchParams(location.hash.slice(1));
-    return params.get(name) ?? fallback;
-  }
-  (function applyAlias(){
-    const raw = decodeURIComponent(getHash("doc", DEFAULT_KEY));
-    const key = ALIASES[raw] || raw;
-    // No UI switching needed—aliases exist to keep old links alive
-    void key; // no-op: here for future expansion
-  })();
 
   populateDocs();
 </script>
 </body>
 </html>
-
