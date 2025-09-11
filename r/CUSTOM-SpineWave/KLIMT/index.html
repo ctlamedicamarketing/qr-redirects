@@ -55,7 +55,7 @@
       </div>
     </section>
 
-    <!-- Right: PDFs (only force-download buttons) -->
+    <!-- Right: PDFs (Download only) -->
     <section class="card" aria-label="Documents">
       <div class="head">
         <h2>Documents</h2>
@@ -72,7 +72,7 @@
 
   <!-- Bottom -->
   <footer>
-    <div class="muted">Downloads use fetch+blob for reliable saving.</div>
+    <div class="muted">Downloads try Pages → Raw → Local and save as real PDFs.</div>
   </footer>
 </div>
 
@@ -81,29 +81,48 @@
    *
    * 1) YOUTUBE VIDEO
    *    Replace YT_ID with the 11-character ID from your video URL.
-   *    Example: https://www.youtube.com/watch?v=cLHOGWiA6YQ -> "cLHOGWiA6YQ"
+   *    Example: https://www.youtube.com/watch?v=cLHOGWiA6YQ  ->  "cLHOGWiA6YQ"
    *
    * 2) PDF LOCATIONS (DOCS array)
-   *    Choose ONE style per 'path':
-   *      a) Relative (same folder or subfolder): "KLIMT-STG.pdf" or "docs/KLIMT-STG.pdf"
-   *      b) Site-root (GitHub Pages): "/qr-redirects/docs/KLIMT-STG.pdf"
-   *      c) Raw GitHub (direct file in repo): 
-   *         "https://raw.githubusercontent.com/<user>/<repo>/<branch>/<path/to/file.pdf>"
+   *    Each item may include up to THREE paths:
+   *      - pages: absolute GitHub Pages URL (recommended for public hosting)
+   *      - raw:   absolute raw.githubusercontent.com URL (direct file in repo)
+   *      - local: relative path next to this HTML (works when hosted together)
    *
-   *    IMPORTANT:
-   *      • Use **raw.githubusercontent.com** or **GitHub Pages** for cross-origin downloads.
-   *        (Do NOT use the GitHub “blob” page URLs—those are HTML pages and will fail.)
-   *      • Filenames on Pages are case-sensitive.
+   *    Use any subset (1–3). The downloader will try Pages, then Raw, then Local.
+   *    Filenames on Pages are case-sensitive. Avoid GitHub “blob” URLs entirely.
    * ======================================================================= */
 
   const YT_ID = "cLHOGWiA6YQ";  // <-- EDIT for your YouTube video
 
   const DOCS = [
-    { label:"KLIMT STG",                    path:"KLIMT-STG.pdf",                            filename:"KLIMT-STG.pdf" },
-    { label:"Klimt Expansion Table & Tips", path:"Klimt-Expansion-table-and-Tips.pdf",       filename:"Klimt-Expansion-Table-and-Tips.pdf" },
-    { label:"Klimt Expansion Table",        path:"Klimt-Expansion-table.pdf",                filename:"Klimt-Expansion-Table.pdf" }
-    // Add more:
-    // { label:"KLIMT Brochure", path:"/qr-redirects/docs/klimt-brochure.pdf", filename:"KLIMT-Brochure.pdf" }
+    {
+      label: "KLIMT STG",
+      filename: "KLIMT-STG.pdf",
+      paths: {
+        pages: "https://ctlamedicamarketing.github.io/qr-redirects/docs/KLIMT-STG.pdf",
+        raw:   "https://raw.githubusercontent.com/ctlamedicamarketing/qr-redirects/main/docs/KLIMT-STG.pdf",
+        local: "KLIMT-STG.pdf"
+      }
+    },
+    {
+      label: "Klimt Expansion Table & Tips",
+      filename: "Klimt-Expansion-Table-and-Tips.pdf",
+      paths: {
+        pages: "https://ctlamedicamarketing.github.io/qr-redirects/docs/Klimt-Expansion-table-and-Tips.pdf",
+        raw:   "https://raw.githubusercontent.com/ctlamedicamarketing/qr-redirects/main/docs/Klimt-Expansion-table-and-Tips.pdf",
+        local: "Klimt-Expansion-table-and-Tips.pdf"
+      }
+    },
+    {
+      label: "Klimt Expansion Table",
+      filename: "Klimt-Expansion-Table.pdf",
+      paths: {
+        pages: "https://ctlamedicamarketing.github.io/qr-redirects/docs/Klimt-Expansion-table.pdf",
+        raw:   "https://raw.githubusercontent.com/ctlamedicamarketing/qr-redirects/main/docs/Klimt-Expansion-table.pdf",
+        local: "Klimt-Expansion-table.pdf"
+      }
+    }
   ];
 
   /* ============================ END CONFIG ============================ */
@@ -119,23 +138,40 @@
     yt.src = `https://www.youtube.com/embed/${YT_ID}?` + params.toString();
   })();
 
-  // --------- Helpers ----------
-  function absUrl(p){
-    try { return new URL(p, location.href).toString(); }
-    catch { return p; }
+  // --------- URL resolvers ----------
+  async function tryHead(url){
+    try {
+      const res = await fetch(url, { method:'HEAD', cache:'no-store', mode:'cors' });
+      return res.ok ? res : null;
+    } catch { return null; }
   }
 
-  // Try to infer a filename from headers or URL if none provided
-  function inferFilename(url, headers, fallback){
-    // Content-Disposition: attachment; filename="example.pdf"
-    const cd = headers.get('content-disposition');
-    if (cd) {
-      const m = cd.match(/filename\*?=(?:UTF-8''|")?([^\";]+)\"?/i);
-      if (m && m[1]) {
-        try { return decodeURIComponent(m[1]); } catch { return m[1]; }
-      }
+  async function resolveUrl(paths){
+    // 1) GitHub Pages
+    if (paths.pages) {
+      const r = await tryHead(paths.pages);
+      if (r) return paths.pages;
     }
-    // URL path segment
+    // 2) Raw GitHub
+    if (paths.raw) {
+      const r = await tryHead(paths.raw);
+      if (r) return paths.raw;
+    }
+    // 3) Local relative (HEAD may be blocked on some static hosts; allow anyway)
+    if (paths.local) {
+      try { return new URL(paths.local, location.href).toString(); }
+      catch { return paths.local; }
+    }
+    return null;
+  }
+
+  // Try to infer a filename from headers (Content-Disposition) or URL
+  function inferFilename(url, headers, fallback){
+    const cd = headers?.get?.('content-disposition');
+    if (cd){
+      const m = cd.match(/filename\*?=(?:UTF-8''|")?([^\";]+)\"?/i);
+      if (m && m[1]) { try { return decodeURIComponent(m[1]); } catch { return m[1]; } }
+    }
     try {
       const u = new URL(url);
       const last = u.pathname.split('/').pop();
@@ -144,31 +180,37 @@
     return fallback || 'download.pdf';
   }
 
-  // Force-download via fetch -> blob -> temporary object URL
-  async function forceDownload(url, suggestedName, btn){
+  // --------- Force download (fetch → blob → save) ----------
+  async function forceDownload(paths, suggestedName, btn){
+    const url = await resolveUrl(paths);
+    if (!url) { alert('No valid download URL found.'); return; }
+
     const originalText = btn.textContent;
     btn.textContent = "Downloading…";
     btn.disabled = true;
 
-    try{
+    try {
       const res = await fetch(url, { mode:'cors', credentials:'omit', cache:'no-store' });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const blob = await res.blob();
 
+      const ct = (res.headers.get('content-type') || '').toLowerCase();
+      if (!ct.includes('application/pdf')) {
+        // Some servers omit the type; allow if the URL ends with .pdf
+        if (!/\.pdf(\?|#|$)/i.test(url)) throw new Error(`Not a PDF (content-type: ${ct || 'unknown'})`);
+      }
+
+      const blob = await res.blob();
       const filename = inferFilename(url, res.headers, suggestedName);
+
       const a = document.createElement('a');
       const objectUrl = URL.createObjectURL(blob);
-      a.href = objectUrl;
-      a.download = filename;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
+      a.href = objectUrl; a.download = filename;
+      document.body.appendChild(a); a.click(); a.remove();
       URL.revokeObjectURL(objectUrl);
 
       btn.textContent = "Downloaded ✓";
     } catch (err){
-      // Graceful fallback: open in a new tab (user can save manually)
-      console.warn('Force download failed, opening instead:', err);
+      console.warn('Direct download failed; opening instead:', err);
       window.open(url, '_blank', 'noopener');
       btn.textContent = "Opened in new tab";
     } finally {
@@ -176,44 +218,44 @@
     }
   }
 
-  async function headOk(url){
-    try{
-      const res = await fetch(url, { method:'HEAD', cache:'no-store', mode:'cors' });
-      return res.ok;
-    }catch{ return false; }
-  }
-
-  // --------- Build Download List ----------
-  const els = {
-    docList:   document.getElementById("docList"),
-    debugBody: document.getElementById("debugBody")
-  };
+  // --------- Build UI ----------
+  const els = { docList: document.getElementById('docList'), debugBody: document.getElementById('debugBody') };
 
   async function populateDocs(){
     for (const d of DOCS){
-      const url = absUrl(d.path);
+      const row = document.createElement('div');
+      row.className = 'item';
 
-      const row = document.createElement("div");
-      row.className = "item";
-
-      const title = document.createElement("h3");
+      const title = document.createElement('h3');
       title.textContent = d.label;
 
-      const download = document.createElement("button");
-      download.className = "btn";
-      download.type = "button";
-      download.textContent = "Download";
-      download.addEventListener('click', ()=> forceDownload(url, d.filename || (d.label.replace(/\s+/g,"_") + ".pdf"), download));
+      const download = document.createElement('button');
+      download.className = 'btn';
+      download.type = 'button';
+      download.textContent = 'Download';
+      download.addEventListener('click', ()=> forceDownload(d.paths, d.filename, download));
 
       row.appendChild(title);
       row.appendChild(download);
       els.docList.appendChild(row);
 
-      // Debug info line (helpful during setup)
-      const ok = await headOk(url);
-      const p = document.createElement("p");
-      p.innerHTML = `• <b>${d.label}</b>: <a href="${url}" target="_blank" rel="noopener">${url}</a> ${ok ? "✅ reachable" : "⚠️ HEAD failed (check CORS/path)"}`
-      els.debugBody.appendChild(p);
+      // Debug lines (optional)
+      const tests = [
+        ['Pages', d.paths.pages],
+        ['Raw',   d.paths.raw],
+        ['Local', d.paths.local ? new URL(d.paths.local, location.href).toString() : null]
+      ];
+      for (const [label, url] of tests){
+        if (!url) continue;
+        let status = '…';
+        try {
+          const head = await tryHead(url);
+          status = head ? '✅' : '⚠️ (HEAD failed)';
+        } catch { status = '⚠️'; }
+        const p = document.createElement('p');
+        p.innerHTML = `• <b>${d.label}</b> – ${label}: <a href="${url}" target="_blank" rel="noopener">${url}</a> ${status}`;
+        els.debugBody.appendChild(p);
+      }
     }
   }
 
