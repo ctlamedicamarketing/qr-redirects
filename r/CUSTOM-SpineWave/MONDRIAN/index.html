@@ -48,12 +48,18 @@
   </header>
 
   <div class="grid" id="mainGrid">
-    <!-- LEFT: YouTube (hidden automatically if YT_ID is blank) -->
+    <!-- LEFT: YouTube -->
     <section class="card" aria-label="Video" id="videoCard">
       <div class="head"><h2 style="margin:0;font-size:14px">MONDRIAN ALIF — TRAINING VIDEO</h2></div>
       <div class="frame">
-        <iframe id="yt" title="YouTube video" allow="autoplay; encrypted-media; picture-in-picture; web-share"
-                allowfullscreen loading="lazy" referrerpolicy="strict-origin-when-cross-origin"></iframe>
+        <!-- Your YouTube embed -->
+        <iframe width="560" height="315"
+          src="https://www.youtube.com/embed/tDm22wZ-5j8?si=S1BYIxUYraA9CK9i"
+          title="YouTube video player" frameborder="0"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+          referrerpolicy="strict-origin-when-cross-origin"
+          allowfullscreen>
+        </iframe>
       </div>
     </section>
 
@@ -68,18 +74,10 @@
 </div>
 
 <script>
-/* ============================= CONFIG =============================
-   1) If you have a Mondrian ALIF YouTube video, paste its ID below.
-      Leave empty "" to hide the video card automatically.
-   2) TAG must match your GitHub Release tag exactly (screenshots show: mondrian.alif-1.0).
-=================================================================== */
-const YT_ID = ""; // e.g., "dQw4w9WgXcQ" — keep "" to hide video
-
+/* ============================= CONFIG ============================= */
 const OWNER_REPO = "ctlamedicamarketing/qr-redirects";
 const TAG        = "mondrian.alif-1.0";
 
-/* Exact asset filenames from your Release page (screenshot)
-   Feel free to tweak the labels/descriptions for UI clarity. */
 const DOCS = [
   {
     label: "MONDRIAN ALIF — Overview",
@@ -120,34 +118,13 @@ const releaseUrl = (file) =>
     const a = document.createElement('a');
     a.href = releaseUrl(d.file);
     a.className = 'btn';
-    a.download = d.file;      // hint; browser may still inline-preview
+    a.download = d.file;
     a.rel = 'noopener';
     a.textContent = 'Download';
 
     row.append(left, a);
     list.appendChild(row);
   });
-})();
-
-/* YouTube embed (loop via playlist trick); hide card if no ID */
-(function initYouTube(){
-  const card = document.getElementById('videoCard');
-  const yt = document.getElementById('yt');
-
-  if (!YT_ID) {
-    // No video for Mondrian yet — remove card and make the docs card span full width on mobile
-    card.remove();
-    // Optional: if you want the right card to become full width on desktop too,
-    // you could also collapse the grid to one column when the video is absent.
-    // document.getElementById('mainGrid').style.gridTemplateColumns = '1fr';
-    return;
-  }
-
-  const params = new URLSearchParams({
-    autoplay:'1', mute:'1', controls:'1', modestbranding:'1', rel:'0',
-    playsinline:'1', loop:'1', playlist:YT_ID, enablejsapi:'1', origin:location.origin
-  });
-  yt.src = `https://www.youtube.com/embed/${YT_ID}?` + params.toString();
 })();
 </script>
 </body>
