@@ -39,7 +39,7 @@
   <div class="grid">
     <!-- LEFT: YouTube -->
     <section class="card" aria-label="Video">
-      <div class="head"><h2 style="margin:0;font-size:14px">KLIMT</h2></div>
+      <div class="head"><h2 style="margin:0;font-size:14px">Product Teaser</h2></div>
       <div class="frame">
         <iframe id="yt" title="YouTube video" allow="autoplay; encrypted-media; picture-in-picture; web-share"
                 allowfullscreen loading="lazy" referrerpolicy="strict-origin-when-cross-origin"></iframe>
@@ -48,12 +48,12 @@
 
     <!-- RIGHT: Release-based Downloads -->
     <section class="card" aria-label="Documents">
-      <div class="head"><h2 style="margin:0;font-size:14px">Downloads</h2></div>
+      <div class="head"><h2 style="margin:0;font-size:14px">Downloads (Release CDN)</h2></div>
       <div id="docList" class="list" aria-live="polite"></div>
     </section>
   </div>
 
-  <footer><span class="muted">Files served from GitHub Releases.</span></footer>
+  <footer><span class="muted">Files served from GitHub Releases (stable, LFS-proof).</span></footer>
 </div>
 
 <script>
@@ -64,12 +64,12 @@ const YT_ID = "cLHOGWiA6YQ";
 const OWNER_REPO = "ctlamedicamarketing/qr-redirects";
 const TAG        = "klimt-1.0";
 
-// Label → filename mapping (exact filenames from the release assets)
+// Exact filenames from your release screenshot
 const DOCS = [
-  { label:"KLIMT Overview",              file:"KLIMT.Overview.V2.pdf" },
-  { label:"KLIMT STG",                   file:"KLIMT.STG.367.003.-09.04.pdf" },
-  { label:"Klimt Expansion Table & Tips",file:"Klimt.Expansion.table.and.Tips-resized-ab3.pdf" },
-  { label:"Klimt Expansion Table",       file:"Klimt.Expansion.table-resized-ab3.pdf" }
+  { label:"KLIMT STG",                    file:"KLIMT-STG.pdf" },
+  { label:"Klimt Expansion Table",        file:"Klimt.Expansion.table-resized-ab3.pdf" },
+  { label:"Klimt Expansion Table & Tips", file:"Klimt.Expansion.table.and.Tips-resized-ab3.pdf" },
+  { label:"KLIMT Overview",               file:"KLIMT.Overview.V2.pdf" }
 ];
 /* =========================== END CONFIG =========================== */
 
@@ -90,7 +90,7 @@ const releaseUrl = (file) =>
     const a = document.createElement('a');
     a.href = releaseUrl(d.file);
     a.className = 'btn';
-    a.download = d.file;              // hint to save; some browsers may still preview
+    a.download = d.file;          // hint; some browsers may still preview
     a.rel = 'noopener';
     a.textContent = 'Download';
 
