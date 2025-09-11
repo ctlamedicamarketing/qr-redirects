@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>MONDRIAN ALIF — Video + PDF Downloads</title>
+  <meta name="robots" content="noindex, nofollow" />
+  <style>
+    :root{
+      --bg:#0b0c10; --panel:#0d111a; --ink:#e8eaed; --muted:#9aa0a6;
+      --stroke:#1e2330; --accent:#ffc81a;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%;margin:0;background:var(--bg);color:var(--ink);
+              font:15px/1.45 system-ui,-apple-system,Segoe UI,Roboto,Arial}
+    .wrap{min-height:100%;display:grid;grid-template-rows:auto 1fr auto;gap:16px;max-width:1200px;margin:0 auto;padding:16px}
+    header{display:flex;align-items:center;justify-content:space-between;padding-bottom:8px;border-bottom:1px solid var(--stroke)}
+    h1{margin:0;font-size:18px;font-weight:700}
+    .grid{display:grid;grid-template-columns:1fr 1.2fr;gap:16px}
+    @media (max-width:980px){.grid{grid-template-columns:1fr}}
+    .card{background:var(--panel);border:1px solid var(--stroke);border-radius:14px;overflow:hidden}
+    .card .head{display:flex;align-items:center;justify-content:space-between;padding:12px;border-bottom:1px solid var(--stroke)}
+    .frame{position:relative;aspect-ratio:16/9;width:100%;background:#000}
+    .frame>iframe{position:absolute;inset:0;border:0;width:100%;height:100%}
+    .list{padding:12px;display:grid;gap:12px}
+    .item{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;border:1px solid var(--stroke);border-radius:12px;padding:10px}
+    .item h3{margin:0;font-size:14px}
+    .item p{margin:0;font-size:12px;color:var(--muted)}
+    .btn{appearance:none;border:1px solid var(--stroke);background:linear-gradient(180deg,#0f1320,#0b0f1b);
+         color:var(--ink);padding:8px 12px;border-radius:10px;cursor:pointer;font-weight:600;text-decoration:none}
+    .btn:hover{border-color:var(--accent)}
+    .muted{color:var(--muted)}
+    footer{display:flex;justify-content:flex-end;padding-top:8px;border-top:1px solid var(--stroke)}
+    .intro{font-size:13px;color:var(--muted);margin:8px 0 0}
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <h1>MONDRIAN ALIF — Video & PDF Downloads</h1>
+      <p class="intro">
+        An anterior lumbar interbody fusion (ALIF) system emphasizing stable footprint,
+        optimized lordosis options, and streamlined anterior access instrumentation.
+        Use the downloads to see the overview and full surgical technique guide.
+      </p>
+    </div>
+  </header>
+
+  <div class="grid" id="mainGrid">
+    <!-- LEFT: YouTube (hidden automatically if YT_ID is blank) -->
+    <section class="card" aria-label="Video" id="videoCard">
+      <div class="head"><h2 style="margin:0;font-size:14px">MONDRIAN ALIF — TRAINING VIDEO</h2></div>
+      <div class="frame">
+        <iframe id="yt" title="YouTube video" allow="autoplay; encrypted-media; picture-in-picture; web-share"
+                allowfullscreen loading="lazy" referrerpolicy="strict-origin-when-cross-origin"></iframe>
+      </div>
+    </section>
+
+    <!-- RIGHT: Release-based Downloads -->
+    <section class="card" aria-label="Documents">
+      <div class="head"><h2 style="margin:0;font-size:14px">PDF Downloads</h2></div>
+      <div id="docList" class="list" aria-live="polite"></div>
+    </section>
+  </div>
+
+  <footer><span class="muted">Files served from GitHub Releases (stable, LFS-proof).</span></footer>
+</div>
+
+<script>
+/* ============================= CONFIG =============================
+   1) If you have a Mondrian ALIF YouTube video, paste its ID below.
+      Leave empty "" to hide the video card automatically.
+   2) TAG must match your GitHub Release tag exactly (screenshots show: mondrian.alif-1.0).
+=================================================================== */
+const YT_ID = ""; // e.g., "dQw4w9WgXcQ" — keep "" to hide video
+
+const OWNER_REPO = "ctlamedicamarketing/qr-redirects";
+const TAG        = "mondrian.alif-1.0";
+
+/* Exact asset filenames from your Release page (screenshot)
+   Feel free to tweak the labels/descriptions for UI clarity. */
+const DOCS = [
+  {
+    label: "MONDRIAN ALIF — Overview",
+    file:  "CTL_Mondrian_ALIF_Overview.pdf",
+    desc:  "High-level system summary: indications, features, and design rationale."
+  },
+  {
+    label: "MONDRIAN ALIF — Surgical Technique Guide (STG)",
+    file:  "MONDRIAN-ALIF-STG.pdf",
+    desc:  "Step-by-step technique: approach, preparation, implant insertion, and closure."
+  },
+  {
+    label: "MONDRIAN ALIF — Overview (Archive • 2023-08-04)",
+    file:  "OVR-MONDRIANALIF-080423.pdf",
+    desc:  "Older overview retained for historical reference. Use the newer Overview above."
+  }
+];
+/* =========================== END CONFIG =========================== */
+
+/* Helpers */
+const releaseUrl = (file) =>
+  `https://github.com/${OWNER_REPO}/releases/download/${encodeURIComponent(TAG)}/${encodeURIComponent(file)}`;
+
+/* Render PDF list */
+(function renderDownloads(){
+  const list = document.getElementById('docList');
+  DOCS.forEach(d=>{
+    const row = document.createElement('div');
+    row.className = 'item';
+
+    const left = document.createElement('div');
+    const title = document.createElement('h3');
+    title.textContent = d.label;
+    const desc = document.createElement('p');
+    desc.textContent = d.desc || "";
+    left.append(title, desc);
+
+    const a = document.createElement('a');
+    a.href = releaseUrl(d.file);
+    a.className = 'btn';
+    a.download = d.file;      // hint; browser may still inline-preview
+    a.rel = 'noopener';
+    a.textContent = 'Download';
+
+    row.append(left, a);
+    list.appendChild(row);
+  });
+})();
+
+/* YouTube embed (loop via playlist trick); hide card if no ID */
+(function initYouTube(){
+  const card = document.getElementById('videoCard');
+  const yt = document.getElementById('yt');
+
+  if (!YT_ID) {
+    // No video for Mondrian yet — remove card and make the docs card span full width on mobile
+    card.remove();
+    // Optional: if you want the right card to become full width on desktop too,
+    // you could also collapse the grid to one column when the video is absent.
+    // document.getElementById('mainGrid').style.gridTemplateColumns = '1fr';
+    return;
+  }
+
+  const params = new URLSearchParams({
+    autoplay:'1', mute:'1', controls:'1', modestbranding:'1', rel:'0',
+    playsinline:'1', loop:'1', playlist:YT_ID, enablejsapi:'1', origin:location.origin
+  });
+  yt.src = `https://www.youtube.com/embed/${YT_ID}?` + params.toString();
+})();
+</script>
+</body>
+</html>
