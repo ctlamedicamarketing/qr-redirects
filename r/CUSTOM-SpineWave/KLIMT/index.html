@@ -72,47 +72,47 @@
 
   <!-- Bottom -->
   <footer>
-    <div class="muted">Downloads try Pages → Raw → Local and save as real PDFs.</div>
+    <div class="muted">Downloads verify real PDFs and try Local → Pages → Raw.</div>
   </footer>
 </div>
 
 <script>
   /* ========================== CONFIG — EDIT THESE ==========================
    * 1) YOUTUBE: replace with the 11-char ID from your video URL.
-   * 2) DOCS: paths.pages are your PROVEN working Pages URLs.
-   *          paths.raw mirror the repo path (update branch if not "main").
-   *          paths.local assume this HTML is in /qr-redirects/r/CUSTOM-SpineWave/KLIMT/
-   *             → if you move the page, update the local strings accordingly.
+   * 2) DOCS: include local/pages/raw as needed. Case-sensitive on Pages.
    * ======================================================================= */
 
-  const YT_ID = "cLHOGWiA6YQ";  // ← EDIT if you swap videos
+  const YT_ID = "cLHOGWiA6YQ";
 
   const DOCS = [
     {
       label: "KLIMT STG",
       filename: "KLIMT-STG.pdf",
       paths: {
+        // Local: assumes this HTML sits beside the PDFs in /r/CUSTOM-SpineWave/KLIMT/
+        local: "./KLIMT-STG.pdf",
+        // Pages: proven working URL
         pages: "https://ctlamedicamarketing.github.io/qr-redirects/r/CUSTOM-SpineWave/KLIMT/KLIMT-STG.pdf",
-        raw:   "https://raw.githubusercontent.com/ctlamedicamarketing/qr-redirects/main/r/CUSTOM-SpineWave/KLIMT/KLIMT-STG.pdf",
-        local: "./KLIMT-STG.pdf"
+        // Raw: direct file in repo (adjust branch if not 'main')
+        raw:   "https://raw.githubusercontent.com/ctlamedicamarketing/qr-redirects/main/r/CUSTOM-SpineWave/KLIMT/KLIMT-STG.pdf"
       }
     },
     {
       label: "Klimt Expansion Table & Tips",
       filename: "Klimt-Expansion-Table-and-Tips.pdf",
       paths: {
+        local: "./Klimt-Expansion-table-and-Tips.pdf",
         pages: "https://ctlamedicamarketing.github.io/qr-redirects/r/CUSTOM-SpineWave/KLIMT/Klimt-Expansion-table-and-Tips.pdf",
-        raw:   "https://raw.githubusercontent.com/ctlamedicamarketing/qr-redirects/main/r/CUSTOM-SpineWave/KLIMT/Klimt-Expansion-table-and-Tips.pdf",
-        local: "./Klimt-Expansion-table-and-Tips.pdf"
+        raw:   "https://raw.githubusercontent.com/ctlamedicamarketing/qr-redirects/main/r/CUSTOM-SpineWave/KLIMT/Klimt-Expansion-table-and-Tips.pdf"
       }
     },
     {
       label: "Klimt Expansion Table",
       filename: "Klimt-Expansion-Table.pdf",
       paths: {
+        local: "./Klimt-Expansion-table.pdf",
         pages: "https://ctlamedicamarketing.github.io/qr-redirects/r/CUSTOM-SpineWave/KLIMT/Klimt-Expansion-table.pdf",
-        raw:   "https://raw.githubusercontent.com/ctlamedicamarketing/qr-redirects/main/r/CUSTOM-SpineWave/KLIMT/Klimt-Expansion-table.pdf",
-        local: "./Klimt-Expansion-table.pdf"
+        raw:   "https://raw.githubusercontent.com/ctlamedicamarketing/qr-redirects/main/r/CUSTOM-SpineWave/KLIMT/Klimt-Expansion-table.pdf"
       }
     }
   ];
@@ -130,42 +130,49 @@
     yt.src = `https://www.youtube.com/embed/${YT_ID}?` + params.toString();
   })();
 
-  // ---------- URL resolvers ----------
-  async function tryHead(url){
-    try { const r = await fetch(url, { method:'HEAD', cache:'no-store', mode:'cors' }); return r.ok ? r : null; }
-    catch { return null; }
+  // ---------- Download utilities (PATCHED) ----------
+  async function tryHead(url) {
+    try {
+      const r = await fetch(url, { method:'HEAD', cache:'no-store', mode:'cors' });
+      return r.ok ? r : null;
+    } catch { return null; }
   }
 
+  function withBuster(url) {
+    const u = new URL(url, location.href);
+    u.searchParams.set('_v', String(Date.now())); // cache-buster to avoid stale/partial saves
+    return u.toString();
+  }
+
+  // Prefer Local (no HEAD), then Pages, then Raw
   async function resolveUrl(paths){
-    if (paths.pages) { const r = await tryHead(paths.pages); if (r) return paths.pages; }
-    if (paths.raw)   { const r = await tryHead(paths.raw);   if (r) return paths.raw; }
-    if (paths.local){
+    if (paths.local) {
       try { return new URL(paths.local, location.href).toString(); }
       catch { return paths.local; }
     }
+    if (paths.pages && await tryHead(paths.pages)) return paths.pages;
+    if (paths.raw   && await tryHead(paths.raw))   return paths.raw;
     return null;
   }
 
-  function inferFilename(url, headers, fallback){
-    const cd = headers?.get?.('content-disposition');
-    if (cd){
-      const m = cd.match(/filename\*?=(?:UTF-8''|")?([^\";]+)\"?/i);
-      if (m && m[1]) { try { return decodeURIComponent(m[1]); } catch { return m[1]; } }
-    }
-    try {
-      const u = new URL(url);
-      const last = u.pathname.split('/').pop();
-      if (last && /\./.test(last)) return last;
-    } catch {}
-    return fallback || 'download.pdf';
+  // Confirm content is truly a PDF (MIME or "%PDF-" signature)
+  async function isRealPdf(res, blob) {
+    const ct = (res.headers.get('content-type') || '').toLowerCase();
+    if (ct.includes('application/pdf')) return true;
+
+    // Some hosts omit/incorrectly set CT — check magic bytes
+    const head = await blob.slice(0, 5).arrayBuffer();
+    const b = new Uint8Array(head);
+    const isPdfSig = b[0]===0x25 && b[1]===0x50 && b[2]===0x44 && b[3]===0x46 && b[4]===0x2D; // %PDF-
+    return isPdfSig;
   }
 
-  // ---------- Force download ----------
   async function forceDownload(paths, suggestedName, btn){
-    const url = await resolveUrl(paths);
-    if (!url) { alert('No valid download URL found.'); return; }
+    const baseUrl = await resolveUrl(paths);
+    if (!baseUrl) { alert('No valid download URL found.'); return; }
 
-    const original = btn.textContent;
+    const url = withBuster(baseUrl);
+    const originalText = btn.textContent;
     btn.textContent = "Downloading…";
     btn.disabled = true;
 
@@ -173,13 +180,21 @@
       const res = await fetch(url, { mode:'cors', credentials:'omit', cache:'no-store' });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
 
-      const ct = (res.headers.get('content-type') || '').toLowerCase();
-      if (!ct.includes('application/pdf') && !/\.pdf(\?|#|$)/i.test(url)){
-        throw new Error(`Not a PDF (content-type: ${ct || 'unknown'})`);
-      }
-
       const blob = await res.blob();
-      const filename = inferFilename(url, res.headers, suggestedName);
+      const ok = await isRealPdf(res, blob);
+      if (!ok) throw new Error('Fetched content is not a valid PDF');
+
+      // Filename preference: Content-Disposition > URL path > provided fallback
+      const filename = (() => {
+        const cd = res.headers.get('content-disposition');
+        if (cd) {
+          const m = cd.match(/filename\*?=(?:UTF-8''|")?([^\";]+)\"?/i);
+          if (m && m[1]) { try { return decodeURIComponent(m[1]); } catch { return m[1]; } }
+        }
+        try { return new URL(baseUrl).pathname.split('/').pop() || suggestedName; }
+        catch { return suggestedName; }
+      })();
+
       const a = document.createElement('a');
       const objectUrl = URL.createObjectURL(blob);
       a.href = objectUrl; a.download = filename;
@@ -188,11 +203,11 @@
 
       btn.textContent = "Downloaded ✓";
     } catch (err){
-      console.warn('Direct download failed; opening instead:', err);
-      window.open(url, '_blank', 'noopener');
+      console.warn('PDF verify/save failed; opening instead:', err);
+      window.open(baseUrl, '_blank', 'noopener');   // let user Save As… if fetch is blocked
       btn.textContent = "Opened in new tab";
     } finally {
-      setTimeout(()=>{ btn.textContent = original; btn.disabled = false; }, 1800);
+      setTimeout(()=>{ btn.textContent = originalText; btn.disabled = false; }, 1800);
     }
   }
 
@@ -217,16 +232,17 @@
       row.appendChild(download);
       els.docList.appendChild(row);
 
-      // Debug (helps confirm which links are reachable)
-      const tests = [
+      // Debug: show reachability for each variant (Local/Pages/Raw)
+      const variants = [
+        ['Local', d.paths.local ? new URL(d.paths.local, location.href).toString() : null],
         ['Pages', d.paths.pages],
-        ['Raw',   d.paths.raw],
-        ['Local', d.paths.local ? new URL(d.paths.local, location.href).toString() : null]
+        ['Raw',   d.paths.raw]
       ];
-      for (const [label, url] of tests){
+      for (const [label, url] of variants){
         if (!url) continue;
         let status = '…';
-        try { status = (await tryHead(url)) ? '✅' : '⚠️ (HEAD failed)'; } catch { status = '⚠️'; }
+        try { status = (label === 'Local') ? '—' : ((await tryHead(url)) ? '✅' : '⚠️ (HEAD failed)'); }
+        catch { status = '⚠️'; }
         const p = document.createElement('p');
         p.innerHTML = `• <b>${d.label}</b> – ${label}: <a href="${url}" target="_blank" rel="noopener">${url}</a> ${status}`;
         els.debugBody.appendChild(p);
