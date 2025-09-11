@@ -79,27 +79,34 @@
 <script>
   /* ========================== CONFIG — EDIT THESE ==========================
    * 1) YOUTUBE: replace with the 11-char ID from your video URL.
-   * 2) DOCS: include local/pages/raw as needed. Case-sensitive on Pages.
+   * 2) DOCS: filenames/paths are case-sensitive. Local assumes this HTML
+   *    lives beside the PDFs in /qr-redirects/r/CUSTOM-SpineWave/KLIMT/.
    * ======================================================================= */
 
   const YT_ID = "cLHOGWiA6YQ";
 
   const DOCS = [
     {
+      label: "KLIMT Overview",
+      filename: "KLIMT-Overview.pdf",
+      paths: {
+        local: "./KLIMT-Overview.pdf",
+        pages: "https://ctlamedicamarketing.github.io/qr-redirects/r/CUSTOM-SpineWave/KLIMT/KLIMT-Overview.pdf",
+        raw:   "https://raw.githubusercontent.com/ctlamedicamarketing/qr-redirects/main/r/CUSTOM-SpineWave/KLIMT/KLIMT-Overview.pdf"
+      }
+    },
+    {
       label: "KLIMT STG",
       filename: "KLIMT-STG.pdf",
       paths: {
-        // Local: assumes this HTML sits beside the PDFs in /r/CUSTOM-SpineWave/KLIMT/
         local: "./KLIMT-STG.pdf",
-        // Pages: proven working URL
         pages: "https://ctlamedicamarketing.github.io/qr-redirects/r/CUSTOM-SpineWave/KLIMT/KLIMT-STG.pdf",
-        // Raw: direct file in repo (adjust branch if not 'main')
         raw:   "https://raw.githubusercontent.com/ctlamedicamarketing/qr-redirects/main/r/CUSTOM-SpineWave/KLIMT/KLIMT-STG.pdf"
       }
     },
     {
       label: "Klimt Expansion Table & Tips",
-      filename: "Klimt-Expansion-Table-and-Tips.pdf",
+      filename: "Klimt-Expansion-table-and-Tips.pdf",
       paths: {
         local: "./Klimt-Expansion-table-and-Tips.pdf",
         pages: "https://ctlamedicamarketing.github.io/qr-redirects/r/CUSTOM-SpineWave/KLIMT/Klimt-Expansion-table-and-Tips.pdf",
@@ -108,7 +115,7 @@
     },
     {
       label: "Klimt Expansion Table",
-      filename: "Klimt-Expansion-Table.pdf",
+      filename: "Klimt-Expansion-table.pdf",
       paths: {
         local: "./Klimt-Expansion-table.pdf",
         pages: "https://ctlamedicamarketing.github.io/qr-redirects/r/CUSTOM-SpineWave/KLIMT/Klimt-Expansion-table.pdf",
@@ -130,17 +137,15 @@
     yt.src = `https://www.youtube.com/embed/${YT_ID}?` + params.toString();
   })();
 
-  // ---------- Download utilities (PATCHED) ----------
+  // ---------- Download utilities ----------
   async function tryHead(url) {
-    try {
-      const r = await fetch(url, { method:'HEAD', cache:'no-store', mode:'cors' });
-      return r.ok ? r : null;
-    } catch { return null; }
+    try { const r = await fetch(url, { method:'HEAD', cache:'no-store', mode:'cors' }); return r.ok ? r : null; }
+    catch { return null; }
   }
 
   function withBuster(url) {
     const u = new URL(url, location.href);
-    u.searchParams.set('_v', String(Date.now())); // cache-buster to avoid stale/partial saves
+    u.searchParams.set('_v', String(Date.now())); // cache-buster to dodge stale/partial responses
     return u.toString();
   }
 
@@ -155,16 +160,26 @@
     return null;
   }
 
-  // Confirm content is truly a PDF (MIME or "%PDF-" signature)
+  // Confirm a real PDF:
+  //  - MIME: application/pdf OR
+  //  - header starts with %PDF-  AND trailer has %%EOF, size > 1KB
   async function isRealPdf(res, blob) {
-    const ct = (res.headers.get('content-type') || '').toLowerCase();
-    if (ct.includes('application/pdf')) return true;
+    const size = blob.size;
+    if (size < 1024) return { ok:false, reason:`too small (${size} bytes)` };
 
-    // Some hosts omit/incorrectly set CT — check magic bytes
-    const head = await blob.slice(0, 5).arrayBuffer();
-    const b = new Uint8Array(head);
-    const isPdfSig = b[0]===0x25 && b[1]===0x50 && b[2]===0x44 && b[3]===0x46 && b[4]===0x2D; // %PDF-
-    return isPdfSig;
+    const ct = (res.headers.get('content-type') || '').toLowerCase();
+    const ctLooksPdf = ct.includes('application/pdf');
+
+    const headBuf = await blob.slice(0, 5).arrayBuffer();
+    const head = new Uint8Array(headBuf);
+    const hasPdfHeader = head[0]===0x25 && head[1]===0x50 && head[2]===0x44 && head[3]===0x46 && head[4]===0x2D; // %PDF-
+
+    const tailSlice = blob.slice(Math.max(0, size - 1024), size);
+    const tailText = await tailSlice.text();
+    const hasPdfEOF = /%%EOF\s*$/.test(tailText);
+
+    const ok = (ctLooksPdf || hasPdfHeader) && hasPdfEOF;
+    return { ok, reason: `ct=${ct || "unknown"}, header=${hasPdfHeader}, eof=${hasPdfEOF}, size=${size}` };
   }
 
   async function forceDownload(paths, suggestedName, btn){
@@ -181,10 +196,9 @@
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
 
       const blob = await res.blob();
-      const ok = await isRealPdf(res, blob);
-      if (!ok) throw new Error('Fetched content is not a valid PDF');
+      const verdict = await isRealPdf(res, blob);
+      if (!verdict.ok) throw new Error(`Not a valid PDF: ${verdict.reason}`);
 
-      // Filename preference: Content-Disposition > URL path > provided fallback
       const filename = (() => {
         const cd = res.headers.get('content-disposition');
         if (cd) {
@@ -202,9 +216,10 @@
       URL.revokeObjectURL(objectUrl);
 
       btn.textContent = "Downloaded ✓";
+      console.info(`[PDF] saved ${filename} from ${baseUrl} (${blob.size} bytes)`);
     } catch (err){
       console.warn('PDF verify/save failed; opening instead:', err);
-      window.open(baseUrl, '_blank', 'noopener');   // let user Save As… if fetch is blocked
+      window.open(baseUrl, '_blank', 'noopener');   // user can Save As…
       btn.textContent = "Opened in new tab";
     } finally {
       setTimeout(()=>{ btn.textContent = originalText; btn.disabled = false; }, 1800);
@@ -232,7 +247,7 @@
       row.appendChild(download);
       els.docList.appendChild(row);
 
-      // Debug: show reachability for each variant (Local/Pages/Raw)
+      // Debug: show reachability for each variant
       const variants = [
         ['Local', d.paths.local ? new URL(d.paths.local, location.href).toString() : null],
         ['Pages', d.paths.pages],
