@@ -58,6 +58,83 @@
 
 <script>
 /* ============================= CONFIG ============================= */
+const YT_ID = "fuN5HfqdtHU";  // updated YouTube ID
+
+// Release details — bump TAG when you publish new assets (e.g., "klimt-1.1")
+const OWNER_REPO = "ctlamedicamarketing/qr-redirects";
+const TAG        = "klimt-1.0";
+
+// Exact filenames from your release screenshot
+const DOCS = [
+  { label:"KLIMT STG",                    file:"KLIMT-STG.pdf" },
+  { label:"Klimt Expansion Table",        file:"Klimt.Expansion.table-resized-ab3.pdf" },
+  { label:"Klimt Expansion Table & Tips", file:"Klimt.Expansion.table.and.Tips-resized-ab3.pdf" },
+  { label:"KLIMT Overview",               file:"KLIMT.Overview.V2.pdf" }
+];
+/* =========================== END CONFIG =========================== */
+
+// Build a Release download URL
+const releaseUrl = (file) =>
+  `https://github.com/${OWNER_REPO}/releases/download/${encodeURIComponent(TAG)}/${encodeURIComponent(file)}`;
+
+// Populate list
+(function renderDownloads(){
+  const list = document.getElementById('docList');
+  DOCS.forEach(d=>{
+    const row = document.createElement('div');
+    row.className = 'item';
+
+    const title = document.createElement('h3');
+    title.textContent = d.label;
+
+    const a = document.createElement('a');
+    a.href = releaseUrl(d.file);
+    a.className = 'btn';
+    a.download = d.file;          // hint; some browsers may still preview
+    a.rel = 'noopener';
+    a.textContent = 'Download';
+
+    row.append(title, a);
+    list.appendChild(row);
+  });
+})();
+
+// YouTube embed (loop via playlist trick)
+(function initYouTube(){
+  const yt = document.getElementById('yt');
+  const params = new URLSearchParams({
+    autoplay:'1', mute:'1', controls:'1', modestbranding:'1', rel:'0',
+    playsinline:'1', loop:'1', playlist:YT_ID, enablejsapi:'1', origin:location.origin
+  });
+  yt.src = `https://www.youtube.com/embed/${YT_ID}?` + params.toString();
+})();
+</script>
+</body>
+</html>
+  <header><h1>KLIMT — Video & PDF Downloads</h1></header>
+
+  <div class="grid">
+    <!-- LEFT: YouTube -->
+    <section class="card" aria-label="Video">
+      <div class="head"><h2 style="margin:0;font-size:14px">KLIMT TRAINING</h2></div>
+      <div class="frame">
+        <iframe id="yt" title="YouTube video" allow="autoplay; encrypted-media; picture-in-picture; web-share"
+                allowfullscreen loading="lazy" referrerpolicy="strict-origin-when-cross-origin"></iframe>
+      </div>
+    </section>
+
+    <!-- RIGHT: Release-based Downloads -->
+    <section class="card" aria-label="Documents">
+      <div class="head"><h2 style="margin:0;font-size:14px">PDF Downloads</h2></div>
+      <div id="docList" class="list" aria-live="polite"></div>
+    </section>
+  </div>
+
+  <footer><span class="muted">Files served from GitHub Releases (stable, LFS-proof).</span></footer>
+</div>
+
+<script>
+/* ============================= CONFIG ============================= */
 const YT_ID = "cLHOGWiA6YQ";
 
 // Release details — bump TAG when you publish new assets (e.g., "klimt-1.1")
