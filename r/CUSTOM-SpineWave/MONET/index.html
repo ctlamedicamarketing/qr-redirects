@@ -145,35 +145,6 @@ const releaseUrl = (file) =>
       </p>
     </div>
   </header>
-
-  <div class="grid" id="mainGrid">
-    <!-- LEFT: YouTube -->
-    <section class="card" aria-label="Video" id="videoCard">
-      <div class="head"><h2 style="margin:0;font-size:14px">MONET — TRAINING VIDEO</h2></div>
-      <div class="frame">
-        <iframe 
-          id="yt" 
-          width="560" height="315"
-          src="https://www.youtube.com/embed/fuN5HfqdtHU"
-          title="YouTube video player" 
-          frameborder="0" 
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
-          referrerpolicy="strict-origin-when-cross-origin" 
-          allowfullscreen>
-        </iframe>
-      </div>
-    </section>
-
-    <!-- RIGHT: Release-based Downloads -->
-    <section class="card" aria-label="Documents">
-      <div class="head"><h2 style="margin:0;font-size:14px">PDF Downloads</h2></div>
-      <div id="docList" class="list" aria-live="polite"></div>
-    </section>
-  </div>
-
-  <footer><span class="muted">Files served from GitHub Releases.</span></footer>
-</div>
-
 <script>
 /* ============================= CONFIG ============================= */
 const YT_ID = "fuN5HfqdtHU"; // updated YouTube video ID
