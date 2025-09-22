@@ -162,7 +162,8 @@
 
   <script>
     /* ============================= CONTENT CONFIG ============================= */
-    const YT_ID      = "cLHOGWiA6YQ";     // YouTube ID for KLIMT
+    // Use your exact embed URL (with ?si=... preserved)
+    const YT_EMBED  = "https://www.youtube.com/embed/fuN5HfqdtHU?si=fHszh6Qgbt6VGJ0_";
     const OWNER_REPO = "ctlamedicamarketing/qr-redirects";
     const TAG        = "klimt-1.0";       // Release tag
 
@@ -225,12 +226,18 @@
       });
     })();
 
+    // YouTube embed: preserve your ?si= token, then add standard player params
     (function initYouTube(){
       const card = document.getElementById('videoCard');
-      if (!YT_ID) { card.remove(); return; }
+      if (!YT_EMBED) { card.remove(); return; }
       const yt = document.getElementById('yt');
-      const params = new URLSearchParams({ autoplay:'0', controls:'1', modestbranding:'1', rel:'0', playsinline:'1' });
-      yt.src = `https://www.youtube.com/embed/${encodeURIComponent(YT_ID)}?` + params.toString();
+
+      // Start from your provided URL and append our usual flags without overwriting yours
+      const u = new URL(YT_EMBED, location.href);
+      const defaults = { autoplay:'0', controls:'1', modestbranding:'1', rel:'0', playsinline:'1' };
+      for (const [k,v] of Object.entries(defaults)) if (!u.searchParams.has(k)) u.searchParams.set(k,v);
+
+      yt.src = u.toString();
     })();
 
     (function qrScanBoot(){
