@@ -9,11 +9,11 @@
   <!-- ===================== CONFIG (filled for you) ===================== -->
   <script>
     window.__CFG__ = {
-      GA4_MEASUREMENT_ID: "G-YH7PR2KMK8",       // from your screenshot
+      GA4_MEASUREMENT_ID: "G-YH7PR2KMK8",       // your GA4 ID
       GTM_CONTAINER_ID  : "",                   // optional: add if/when you move to GTM
-      CONSENT_REGION    : "us",                 // switch to "eea" if you need stricter defaults
+      CONSENT_REGION    : "us",                 // switch to "eea" for stricter defaults
       CROSS_DOMAIN_HOSTS: [],                   // add destination domains you own to stitch sessions
-      MP_ENDPOINT       : "",                   // optional server endpoint for Measurement Protocol
+      MP_ENDPOINT       : "",                   // optional server endpoint for Measurement Protocol relay
       UTM_DEFAULTS      : {
         utm_source  : "qr",
         utm_medium  : "github_pages",
@@ -141,6 +141,13 @@
       <section class="card" aria-label="Documents">
         <div class="head"><h2 style="margin:0;font-size:14px">PDF Downloads</h2></div>
         <div id="docList" class="list" aria-live="polite"></div>
+
+        <!-- NEW: Redirect Button block -->
+        <div style="padding:12px;display:flex;justify-content:flex-end">
+          <a id="redirectBtn" class="btn"
+             href="https://zaq.jby.mybluehost.me/monet/"
+             rel="noopener">Go to Monet Website →</a>
+        </div>
       </section>
     </div>
 
@@ -184,7 +191,11 @@
     function sendEvent(name, params){
       const ep = (window.__CFG__||{}).MP_ENDPOINT || "";
       if (ep && navigator.sendBeacon) {
-        try { navigator.sendBeacon(ep, new Blob([JSON.stringify({type:'client_event',name,params,ts:Date.now(),page:location.href,ua:navigator.userAgent})],{type:'application/json'})); } catch(e){}
+        try {
+          navigator.sendBeacon(ep, new Blob([JSON.stringify({
+            type:'client_event', name, params, ts:Date.now(), page:location.href, ua:navigator.userAgent
+          })], {type:'application/json'}));
+        } catch(e){}
       }
       if (typeof gtag === 'function') gtag('event', name, params || {});
       else (window.dataLayer = window.dataLayer || []).push({event:name, ...(params||{})});
@@ -219,8 +230,7 @@
     })();
 
     (function qrScanBoot(){
-      // This path is /qr-redirects/r/landing-page/monet/index.html → use "monet"
-      const slug = 'monet';
+      const slug = 'monet'; // path-based slug for this page
       const q = new URLSearchParams(location.search);
       const utms = {};
       ['utm_source','utm_medium','utm_campaign','utm_content','utm_term'].forEach(k=>{
@@ -229,6 +239,20 @@
       sendEvent('qr_scan', { slug, page_location: location.href, ...utms });
     })();
 
+    // NEW: Redirect button — add UTMs, log, then go
+    (function initRedirectBtn(){
+      const btn = document.getElementById('redirectBtn');
+      if (!btn) return;
+
+      // Ensure UTMs are present on the button's href
+      btn.href = withUTMs(btn.href);
+
+      btn.addEventListener('click', ()=>{
+        sendEvent('redirect_click', { slug:'monet', link_url: btn.href });
+      });
+    })();
+
+    // Global outbound click logger (covers future links you might add)
     document.addEventListener('click', (e)=>{
       const a = e.target.closest('a[href]'); if (!a) return;
       if (isOutbound(a.href)) {
