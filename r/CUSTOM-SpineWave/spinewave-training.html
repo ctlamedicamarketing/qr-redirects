@@ -3,98 +3,62 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Download — SpineWave Training Deck</title>
-  <meta name="description" content="Download the SpineWave training PowerPoint from our official GitHub release." />
+  <title>SpineWave Training Deck Download</title>
+  <meta name="description" content="Download the SpineWave training PowerPoint from GitHub Release." />
   <style>
-    :root { --bg:#0e1116; --card:#151a22; --ink:#e8ecf1; --muted:#a9b2bd; --accent:#4ea1ff; }
-    html,body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 system-ui,Segoe UI,Roboto,Arial,sans-serif;}
-    .wrap{max-width:880px;margin:4rem auto;padding:0 1rem;}
-    .card{background:var(--card);border-radius:18px;padding:2rem;box-shadow:0 10px 30px rgba(0,0,0,.35)}
+    :root { --bg:#0e1116; --card:#151a22; --ink:#e8ecf1; --accent:#4ea1ff; }
+    html,body{margin:0;background:var(--bg);color:var(--ink);
+      font:16px/1.5 system-ui,Segoe UI,Roboto,Arial,sans-serif;}
+    .wrap{max-width:700px;margin:4rem auto;padding:0 1rem;}
+    .card{background:var(--card);border-radius:18px;padding:2rem;
+      box-shadow:0 10px 30px rgba(0,0,0,.35);text-align:center;}
     h1{margin:.2rem 0 1rem 0;font-size:1.9rem}
-    p{color:var(--muted)}
-    .meta{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:1rem 0 1.5rem}
-    .pill{background:#0f141b;border:1px solid #232a35;border-radius:999px;padding:.6rem .9rem;color:var(--ink)}
-    .btn{display:inline-block;background:var(--accent);color:#001022;text-decoration:none;font-weight:700;
-         padding:1rem 1.2rem;border-radius:12px;border:0;cursor:pointer}
+    .pill{display:inline-block;background:#0f141b;border:1px solid #232a35;
+      border-radius:999px;padding:.6rem 1rem;margin:.5rem 0;font-weight:500}
+    .btn{display:inline-block;background:var(--accent);color:#001022;
+      text-decoration:none;font-weight:700;padding:1rem 1.5rem;
+      border-radius:12px;margin-top:1.5rem}
     .btn:hover{filter:brightness(1.08)}
-    .alt{margin-top:1rem}
-    code{background:#0f141b;border:1px solid #232a35;padding:.25rem .4rem;border-radius:6px}
-    .mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
-    footer{margin-top:2rem;color:var(--muted);font-size:.9rem}
   </style>
 </head>
 <body>
   <div class="wrap">
     <div class="card">
       <h1>SpineWave Training Deck (.pptx)</h1>
-      <p>This page downloads the official training PowerPoint from the latest GitHub Release.</p>
-
-      <div class="meta">
-        <div class="pill">Version: <span id="version" class="mono">…</span></div>
-        <div class="pill">File size: <span id="filesize">…</span></div>
-        <div class="pill">SHA-256: <span id="sha" class="mono">…</span></div>
-        <div class="pill">Published: <span id="date">…</span></div>
-      </div>
-
+      <div class="pill">File size: <span id="filesize">…</span></div>
+      <br/>
       <a id="downloadBtn" class="btn" href="#" download>⬇️ Download PowerPoint</a>
-
-      <div class="alt">
-        <p><strong>Alternate:</strong> <a id="releaseLink" href="#" target="_blank" rel="noopener">Open release page</a></p>
-        <p>If the button doesn’t start the download, use the release link above.</p>
-      </div>
-
-      <footer>
-        <p>Tip: Large PPTX files with embedded video are best downloaded and opened in desktop PowerPoint.</p>
-      </footer>
     </div>
   </div>
 
   <script>
-    // ── Configure these four values ─────────────────────────────────────────────
+    // ── Configure these four values ─────────────────────────────
     const OWNER    = "ctlamedicamarketing";
     const REPO     = "qr-redirects";
-    const TAG      = "spinewave.training-1.0"; // the exact release tag you created
-    const FILENAME = "KLIMT.MONET.Spinewave.Training.-.FINAL.pptx"; // exact asset name
-    // ───────────────────────────────────────────────────────────────────────────
+    const TAG      = "spinewave.training-1.0";
+    const FILENAME = "KLIMT.MONET.Spinewave.Training.-.FINAL.pptx";
+    // ───────────────────────────────────────────────────────────
 
-    // API endpoint for the release (public repos only)
     const api = `https://api.github.com/repos/${OWNER}/${REPO}/releases/tags/${encodeURIComponent(TAG)}`;
-
-    // Helper: human file size
     const prettySize = (bytes) => {
       if (!Number.isFinite(bytes)) return "—";
-      const units = ["B","KB","MB","GB","TB"];
-      let i = 0;
-      while (bytes >= 1024 && i < units.length-1) { bytes/=1024; i++; }
-      return `${bytes.toFixed(i?1:0)} ${units[i]}`;
+      const units = ["B","KB","MB","GB"];
+      let i=0; while (bytes>=1024 && i<units.length-1){bytes/=1024;i++;}
+      return `${bytes.toFixed(1)} ${units[i]}`;
     };
 
-    // Load release + asset info
     fetch(api).then(r=>r.json()).then(rel=>{
-      const asset = (rel.assets||[]).find(a => a.name === FILENAME) || rel.assets?.[0];
-      // Fill UI
-      document.getElementById("version").textContent = rel.tag_name || TAG;
-      document.getElementById("date").textContent    = rel.published_at ? new Date(rel.published_at).toLocaleString() : "—";
-      document.getElementById("releaseLink").href    = rel.html_url || `https://github.com/${OWNER}/${REPO}/releases/tag/${TAG}`;
-
+      const asset = (rel.assets||[]).find(a=>a.name===FILENAME) || rel.assets?.[0];
       const dl = asset
         ? asset.browser_download_url
         : `https://github.com/${OWNER}/${REPO}/releases/download/${encodeURIComponent(TAG)}/${encodeURIComponent(FILENAME)}`;
-
       document.getElementById("downloadBtn").href = dl;
       document.getElementById("filesize").textContent = asset ? prettySize(asset.size) : "—";
-
-      // If you captured the SHA-256 from the release page, paste it here for display:
-      const knownSha = ""; // e.g., "sha256:238b83bcb83f0a7e476498b976..."
-      document.getElementById("sha").textContent = knownSha || "available on release page";
     }).catch(err=>{
       console.error(err);
-      document.getElementById("version").textContent = TAG;
-      document.getElementById("releaseLink").href = `https://github.com/${OWNER}/${REPO}/releases/tag/${TAG}`;
-      document.getElementById("downloadBtn").href = `https://github.com/${OWNER}/${REPO}/releases/tag/${TAG}`;
+      document.getElementById("downloadBtn").href =
+        `https://github.com/${OWNER}/${REPO}/releases/tag/${TAG}`;
       document.getElementById("filesize").textContent = "—";
-      document.getElementById("sha").textContent = "—";
-      document.getElementById("date").textContent = "—";
     });
   </script>
 </body>
