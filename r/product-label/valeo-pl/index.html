@@ -1,1 +1,210 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>VALEO PL — PDF Downloads</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="robots" content="noindex, nofollow" />
+
+  <!-- ===================== CONFIG (VALEO PL) ===================== -->
+  <script>
+    window.__CFG__ = {
+      CONSENT_REGION    : "us",                 // switch to "eea" for stricter defaults
+      CROSS_DOMAIN_HOSTS: [],                   // add destination domains you own to stitch sessions
+      MP_ENDPOINT       : "",                   // optional server endpoint for Measurement Protocol relay
+      UTM_DEFAULTS      : {
+        utm_source  : "qr",
+        utm_medium  : "github_pages",
+        utm_campaign: "valeo-pl",
+        utm_content : "redirect"
+      }
+    };
+  </script>
+
+  <!-- ===================== NEW Google tag (gtag.js) ===================== -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-4HQN0NG7XV"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+
+    /* Consent Mode v2 defaults */
+    const region = (window.__CFG__||{}).CONSENT_REGION || "us";
+    const defaults = (region === "eea")
+      ? {ad_storage:"denied", analytics_storage:"denied", ad_user_data:"denied", ad_personalization:"denied"}
+      : {ad_storage:"granted", analytics_storage:"granted", ad_user_data:"granted", ad_personalization:"granted"};
+    gtag('consent','default', defaults);
+
+    gtag('js', new Date());
+
+    const domains = (window.__CFG__||{}).CROSS_DOMAIN_HOSTS || [];
+    gtag('config', 'G-4HQN0NG7XV', { linker:{domains}, send_page_view:true });
+  </script>
+
+  <style>
+    :root{ --bg:#0b0c10; --panel:#0d111a; --ink:#e8eaed; --muted:#9aa0a6; --stroke:#1e2330; --accent:#ffc81a; }
+    *{box-sizing:border-box}
+    html,body{height:100%;margin:0;background:var(--bg);color:var(--ink);
+      font:15px/1.45 system-ui,-apple-system,Segoe UI,Roboto,Arial}
+    .wrap{min-height:100%;display:grid;grid-template-rows:auto 1fr auto;gap:16px;max-width:1200px;margin:0 auto;padding:16px}
+    header{display:flex;align-items:center;justify-content:space-between;padding-bottom:8px;border-bottom:1px solid var(--stroke)}
+    h1{margin:0;font-size:18px;font-weight:700}
+    .intro{font-size:13px;color:var(--muted);margin:8px 0 0}
+    .grid{display:grid;grid-template-columns:1fr;gap:16px}
+    .card{background:var(--panel);border:1px solid var(--stroke);border-radius:14px;overflow:hidden}
+    .card .head{display:flex;align-items:center;justify-content:space-between;padding:12px;border-bottom:1px solid var(--stroke)}
+    .list{padding:12px;display:grid;gap:12px}
+    .item{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;border:1px solid var(--stroke);border-radius:12px;padding:10px}
+    .item h3{margin:0;font-size:14px}
+    .item p{margin:0;font-size:12px;color:var(--muted)}
+    .btn{appearance:none;border:1px solid var(--stroke);background:linear-gradient(180deg,#0f1320,#0b0f1b);
+         color:var(--ink);padding:8px 12px;border-radius:10px;cursor:pointer;font-weight:600;text-decoration:none}
+    .btn:hover{border-color:var(--accent)}
+    .muted{color:var(--muted)}
+    footer{display:flex;justify-content:flex-end;padding-top:8px;border-top:1px solid var(--stroke)}
+    .consent{position:fixed;inset:auto 12px 12px 12px;background:var(--panel);border:1px solid var(--stroke);
+      border-radius:12px;padding:12px;display:none;gap:8px;align-items:center;z-index:9999}
+    .consent.show{display:flex}
+    .consent button{margin-left:auto}
+  </style>
+
+  <!-- Consent banner logic -->
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const key = 'valeo-pl-consent';
+      const saved = localStorage.getItem(key);
+      if (!saved) document.querySelector('.consent')?.classList.add('show');
+
+      function setConsent(granted){
+        localStorage.setItem(key, granted?'granted':'denied');
+        gtag('consent','update',{
+          ad_storage: granted?'granted':'denied',
+          analytics_storage: granted?'granted':'denied',
+          ad_user_data: granted?'granted':'denied',
+          ad_personalization: granted?'granted':'denied'
+        });
+        document.querySelector('.consent')?.classList.remove('show');
+      }
+      window.__acceptConsent=()=>setConsent(true);
+      window.__denyConsent=()=>setConsent(false);
+    });
+  </script>
+</head>
+
+<body>
+  <div class="wrap">
+    <header>
+      <div>
+        <h1>VALEO PL — PDF Downloads</h1>
+        <p class="intro">
+          Access the latest VALEO PL Surgical Technique Guide (STG) PDF from GitHub Releases.
+        </p>
+      </div>
+    </header>
+
+    <div class="grid" id="mainGrid">
+      <section class="card" aria-label="Documents">
+        <div class="head"><h2 style="margin:0;font-size:14px">PDF Downloads</h2></div>
+        <div id="docList" class="list" aria-live="polite"></div>
+      </section>
+    </div>
+
+    <footer><span class="muted">Files served from GitHub Releases.</span></footer>
+  </div>
+
+  <!-- Minimal consent banner -->
+  <div class="consent" role="dialog" aria-live="polite" aria-label="Analytics consent">
+    <span>Allow analytics cookies for improved measurement?</span>
+    <button class="btn" onclick="__denyConsent()">No</button>
+    <button class="btn" onclick="__acceptConsent()">Yes</button>
+  </div>
+
+  <script>
+    /* ============================= CONTENT CONFIG ============================= */
+    const OWNER_REPO = "ctlamedicamarketing/qr-redirects";
+    const TAG        = "valeo-pl-1.0";
+
+    const DOCS = [
+      {
+        label: "VALEO PL — Surgical Technique Guide (STG)",
+        file : "400012.-.Valeo.PL.Surgical.Technique.Guide.-.Rev.J.pdf",
+        desc : "Latest published Surgical Technique Guide from the valeo-pl-1.0 release."
+      }
+    ];
+    /* =========================== END CONTENT CONFIG =========================== */
+
+    const releaseUrl = (file) =>
+      `https://github.com/${OWNER_REPO}/releases/download/${encodeURIComponent(TAG)}/${encodeURIComponent(file)}`;
+
+    function withUTMs(url){
+      const cfg = (window.__CFG__||{}).UTM_DEFAULTS || {};
+      const u = new URL(url, location.href);
+      for (const [k,v] of Object.entries(cfg)) if (!u.searchParams.has(k)) u.searchParams.set(k, v);
+      return u.toString();
+    }
+
+    function isOutbound(href){
+      try{ const u = new URL(href, location.href); return u.hostname !== location.hostname; }
+      catch { return false; }
+    }
+
+    function sendEvent(name, params){
+      const ep = (window.__CFG__||{}).MP_ENDPOINT || "";
+      if (ep && navigator.sendBeacon) {
+        try {
+          navigator.sendBeacon(ep, new Blob([JSON.stringify({
+            type:'client_event', name, params, ts:Date.now(), page:location.href, ua:navigator.userAgent
+          })], {type:'application/json'}));
+        } catch(e){}
+      }
+      if (typeof gtag === 'function') gtag('event', name, params || {});
+      else (window.dataLayer = window.dataLayer || []).push({event:name, ...(params||{})});
+    }
+
+    (function renderDownloads(){
+      const list = document.getElementById('docList');
+      DOCS.forEach(d=>{
+        const row = document.createElement('div'); row.className = 'item';
+
+        const left = document.createElement('div');
+        const title = document.createElement('h3'); title.textContent = d.label;
+        const desc  = document.createElement('p');  desc.textContent  = d.desc || "";
+        left.append(title, desc);
+
+        const a = document.createElement('a');
+        a.href = withUTMs(releaseUrl(d.file));
+        a.className = 'btn';
+        a.rel = 'noopener';
+        a.target = '_blank';
+        a.textContent = 'Open / Download';
+
+        a.addEventListener('click', ()=>{
+          sendEvent('file_download', { slug:'valeo-pl', file_name:d.file, content_type:'pdf', link_url:a.href });
+        });
+
+        row.append(left, a);
+        list.appendChild(row);
+      });
+    })();
+
+    (function qrScanBoot(){
+      const slug = 'valeo-pl';
+      const q = new URLSearchParams(location.search);
+      const utms = {};
+      ['utm_source','utm_medium','utm_campaign','utm_content','utm_term'].forEach(k=>{
+        const v = q.get(k) || (window.__CFG__.UTM_DEFAULTS||{})[k];
+        if (v) utms[k]=v;
+      });
+      sendEvent('qr_scan', { slug, page_location: location.href, ...utms });
+    })();
+
+    // Global outbound click logger (covers future links you might add)
+    document.addEventListener('click', (e)=>{
+      const a = e.target.closest('a[href]'); if (!a) return;
+      if (isOutbound(a.href)) {
+        sendEvent('click_outbound', { link_url:a.href, link_text:(a.textContent||'').trim().slice(0,120) });
+      }
+    });
+  </script>
+</body>
+</html>
 
