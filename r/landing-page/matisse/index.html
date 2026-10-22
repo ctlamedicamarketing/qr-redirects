@@ -1,0 +1,288 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>MATISSE — Video + PDF Downloads</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="robots" content="noindex, nofollow" />
+  <meta name="theme-color" content="#0b0c10" />
+  <meta name="description" content="MATISSE cervical interbody system video and PDF resources from CTL Amedica." />
+
+  <!-- ===================== CONFIG (MATISSE) ===================== -->
+  <script>
+    window.__CFG__ = {
+      GA4_MEASUREMENT_ID: "",            // Add an approved MATISSE or shared GA4 ID. Never reuse a product-specific KLIMT stream without approval.
+      GTM_CONTAINER_ID  : "",            // Optional, configured GTM container, instead of the gtag loader.
+      CONSENT_REGION    : "us",          // Storage remains denied until the visitor explicitly opts in.
+      CROSS_DOMAIN_HOSTS: ["ctlamedica.com"],
+      MP_ENDPOINT       : "",            // Optional reviewed first-party event endpoint.
+      UTM_DEFAULTS      : {
+        utm_source  : "qr",
+        utm_medium  : "github_pages",
+        utm_campaign: "matisse",
+        utm_content : "redirect"
+      }
+    };
+  </script>
+
+  <!-- Styles and layout intentionally match the supplied KLIMT landing page. -->
+  <style>
+    :root{ --bg:#0b0c10; --panel:#0d111a; --ink:#e8eaed; --muted:#9aa0a6; --stroke:#1e2330; --accent:#ffc81a; }
+    *{box-sizing:border-box}
+    html,body{height:100%;margin:0;background:var(--bg);color:var(--ink);
+      font:15px/1.45 system-ui,-apple-system,Segoe UI,Roboto,Arial}
+    .wrap{min-height:100%;display:grid;grid-template-rows:auto 1fr auto;gap:16px;max-width:1200px;margin:0 auto;padding:16px}
+    header{display:flex;align-items:center;justify-content:space-between;padding-bottom:8px;border-bottom:1px solid var(--stroke)}
+    h1{margin:0;font-size:18px;font-weight:700}
+    .intro{font-size:13px;color:var(--muted);margin:8px 0 0}
+    .grid{display:grid;grid-template-columns:1fr 1.2fr;gap:16px}
+    @media (max-width:980px){.grid{grid-template-columns:1fr}}
+    .card{background:var(--panel);border:1px solid var(--stroke);border-radius:14px;overflow:hidden}
+    .card .head{display:flex;align-items:center;justify-content:space-between;padding:12px;border-bottom:1px solid var(--stroke)}
+    .frame{position:relative;aspect-ratio:16/9;width:100%;background:#000}
+    .frame>iframe{position:absolute;inset:0;border:0;width:100%;height:100%}
+    .list{padding:12px;display:grid;gap:12px}
+    .item{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;border:1px solid var(--stroke);border-radius:12px;padding:10px}
+    .item h3{margin:0;font-size:14px}
+    .item p{margin:0;font-size:12px;color:var(--muted)}
+    .btn{appearance:none;border:1px solid var(--stroke);background:linear-gradient(180deg,#0f1320,#0b0f1b);
+         color:var(--ink);padding:8px 12px;border-radius:10px;cursor:pointer;font-weight:600;text-decoration:none}
+    .btn:hover{border-color:var(--accent)}
+    .muted{color:var(--muted)}
+    footer{display:flex;justify-content:flex-end;padding-top:8px;border-top:1px solid var(--stroke)}
+    .consent{position:fixed;inset:auto 12px 12px 12px;background:var(--panel);border:1px solid var(--stroke);
+      border-radius:12px;padding:12px;display:none;gap:8px;align-items:center;z-index:9999}
+    .consent.show{display:flex}
+    .consent button{margin-left:auto}
+    /* The following states add functionality without changing the reference layout. */
+    .frame-empty{position:absolute;inset:0;display:grid;place-items:center;padding:16px;text-align:center;color:var(--muted);font-size:13px}
+    .frame-empty strong{display:block;color:var(--ink);font-size:14px;margin-bottom:6px}
+    [hidden]{display:none!important}
+    .btn[disabled]{cursor:not-allowed;color:var(--muted);opacity:.72}
+    .btn[disabled]:hover{border-color:var(--stroke)}
+    a:focus-visible,button:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+    .item>div:first-child{min-width:0;flex:1 1 240px}
+    .consent button{min-height:36px}
+    @media (max-width:600px){.consent{flex-wrap:wrap}.consent button{margin-left:0}}
+  </style>
+
+  <!-- Consent-gated GA4/GTM, using the reference page's event names and link flow. -->
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){ dataLayer.push(arguments); }
+    const CONSENT_KEY = 'matisse-consent';
+    let measurementLoaded = false;
+
+    gtag('consent', 'default', {
+      ad_storage:'denied', analytics_storage:'denied', ad_user_data:'denied', ad_personalization:'denied'
+    });
+
+    function isMeasurementConfigured(){
+      const c = window.__CFG__ || {};
+      return Boolean(c.GA4_MEASUREMENT_ID || c.GTM_CONTAINER_ID || c.MP_ENDPOINT);
+    }
+    function hasConsent(){
+      try{return localStorage.getItem(CONSENT_KEY) === 'granted';}catch(_){return false;}
+    }
+    function loadTags(){
+      if(measurementLoaded || !hasConsent() || !isMeasurementConfigured())return;
+      measurementLoaded=true;
+      const {GA4_MEASUREMENT_ID,GTM_CONTAINER_ID} = window.__CFG__ || {};
+      gtag('consent','update',{
+        ad_storage:'denied',analytics_storage:'granted',ad_user_data:'denied',ad_personalization:'denied'
+      });
+      if(GTM_CONTAINER_ID){
+        const s=document.createElement('script');s.async=true;
+        s.src='https://www.googletagmanager.com/gtm.js?id='+encodeURIComponent(GTM_CONTAINER_ID);
+        document.head.appendChild(s);
+      }else if(GA4_MEASUREMENT_ID){
+        const s=document.createElement('script');s.async=true;
+        s.src='https://www.googletagmanager.com/gtag/js?id='+encodeURIComponent(GA4_MEASUREMENT_ID);
+        document.head.appendChild(s);
+        gtag('js',new Date());
+        gtag('config',GA4_MEASUREMENT_ID,{
+          linker:{domains:window.__CFG__.CROSS_DOMAIN_HOSTS||[]},send_page_view:true
+        });
+      }
+    }
+    function setConsent(granted){
+      try{localStorage.setItem(CONSENT_KEY,granted?'granted':'denied');}catch(_){}
+      gtag('consent','update',{
+        ad_storage:'denied',analytics_storage:granted?'granted':'denied',
+        ad_user_data:'denied',ad_personalization:'denied'
+      });
+      document.querySelector('.consent')?.classList.remove('show');
+      if(granted){loadTags();window.__reportQrLanding?.();}
+    }
+    window.__acceptConsent=()=>setConsent(true);
+    window.__denyConsent=()=>setConsent(false);
+    document.addEventListener('DOMContentLoaded',()=>{
+      if(isMeasurementConfigured()){
+        if(hasConsent()){loadTags();window.__reportQrLanding?.();}
+        else{
+          let choice=null;
+          try{choice=localStorage.getItem(CONSENT_KEY);}catch(_){}
+          if(!choice)document.querySelector('.consent')?.classList.add('show');
+        }
+      }
+    });
+  </script>
+</head>
+
+<body>
+  <noscript><p style="padding:16px">Enable JavaScript to display this product's available downloads.</p></noscript>
+
+  <div class="wrap">
+    <header>
+      <div>
+        <h1>MATISSE — Video &amp; PDF Downloads</h1>
+        <p class="intro">
+          Anterior cervical interbody fusion resources. View the training video and access the available technique materials.
+        </p>
+      </div>
+    </header>
+
+    <div class="grid" id="mainGrid">
+      <!-- LEFT: exactly the same video-card structure as KLIMT. -->
+      <section class="card" aria-label="Video" id="videoCard">
+        <div class="head"><h2 style="margin:0;font-size:14px">MATISSE — TRAINING VIDEO</h2></div>
+        <div class="frame">
+          <iframe id="yt" src="" title="MATISSE training video" loading="lazy"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+            referrerpolicy="strict-origin-when-cross-origin" allowfullscreen hidden></iframe>
+          <div id="videoFallback" class="frame-empty" role="status"><div><strong>MATISSE Training Video</strong>Approved video will appear here when added.</div></div>
+        </div>
+      </section>
+
+      <!-- RIGHT: exactly the same downloads-card structure as KLIMT. -->
+      <section class="card" aria-label="Documents">
+        <div class="head"><h2 style="margin:0;font-size:14px">PDF Downloads</h2></div>
+        <div id="docList" class="list" aria-live="polite"></div>
+        <div style="padding:12px;display:flex;justify-content:flex-end">
+          <a id="redirectBtn" class="btn" href="https://ctlamedica.com/matisse/"
+             rel="noopener noreferrer" target="_blank">Go to MATISSE Website →</a>
+        </div>
+      </section>
+    </div>
+
+    <footer><span class="muted">Files served from the MATISSE GitHub Release and CTL Amedica.</span></footer>
+  </div>
+
+  <div class="consent" role="dialog" aria-live="polite" aria-label="Analytics consent">
+    <span>Allow analytics cookies for improved measurement?</span>
+    <button class="btn" type="button" onclick="__denyConsent()">No</button>
+    <button class="btn" type="button" onclick="__acceptConsent()">Yes</button>
+  </div>
+
+  <script>
+    /* ============================= CONTENT CONFIG ============================= */
+    // Configure a verified MATISSE-only YouTube embed URL when approved.
+    const YT_EMBED   = "";
+    const OWNER_REPO = "ctlamedicamarketing/qr-redirects";
+    const TAG        = "matisse-1.0";  // MATISSE PDF release shown in the supplied GitHub screenshot.
+    // Release filenames must match the GitHub asset names exactly, including punctuation.
+    // Use a direct `url` for documents hosted elsewhere; entries without either remain Pending.
+    const DOCS = [
+      { label:"MATISSE – Surgical Technique Guide (Rev F)", file:"STG.013.001.-.MATISSE.STG.-.REV.F.pdf", url:"",
+        desc:"MATISSE surgical technique and instrumentation guide from the matisse-1.0 release." },
+      { label:"MATISSE – Product Overview", file:"OVR.MATISSE.20200208.pdf", url:"",
+        desc:"Product overview PDF from the matisse-1.0 release." },
+      { label:"MATISSE – Instrumentation Reference", file:"", url:"",
+        desc:"Additional instrumentation reference, if published separately. Awaiting PDF." },
+      { label:"MATISSE – Cervical Cage System IFU (Rev H)", file:"", url:"https://ctlamedica.com/wp-content/uploads/2024/09/IFU.013.001-Cervical-Cage-System-IFU-Rev-H.pdf",
+        desc:"Published cervical cage instructions for use (Rev H); confirm revision before distribution." }
+    ];
+    /* =========================== END CONTENT CONFIG =========================== */
+
+    const releaseUrl=file=>`https://github.com/${OWNER_REPO}/releases/download/${encodeURIComponent(TAG)}/${encodeURIComponent(file)}`;
+    function withUTMs(url){
+      const cfg=(window.__CFG__||{}).UTM_DEFAULTS||{};
+      const u=new URL(url,location.href);
+      for(const [k,v] of Object.entries(cfg))if(!u.searchParams.has(k))u.searchParams.set(k,v);
+      return u.toString();
+    }
+    function isOutbound(href){
+      try{return new URL(href,location.href).hostname!==location.hostname;}catch(_){return false;}
+    }
+    function sendEvent(name,params){
+      if(!hasConsent()||!isMeasurementConfigured())return;
+      const ep=(window.__CFG__||{}).MP_ENDPOINT||"";
+      if(ep&&navigator.sendBeacon){
+        try{navigator.sendBeacon(ep,new Blob([JSON.stringify({type:'client_event',name,params,ts:Date.now(),page:location.href})],{type:'application/json'}));}catch(_){}
+      }
+      if(window.__CFG__.GA4_MEASUREMENT_ID||window.__CFG__.GTM_CONTAINER_ID){
+        if(window.__CFG__.GTM_CONTAINER_ID)window.dataLayer.push({event:name,...(params||{})});
+        else gtag('event',name,params||{});
+      }
+    }
+
+    (function renderDownloads(){
+      const list=document.getElementById('docList');
+      DOCS.forEach(d=>{
+        const row=document.createElement('div');row.className='item';
+        const left=document.createElement('div');
+        const title=document.createElement('h3');title.textContent=d.label;
+        const desc=document.createElement('p');desc.textContent=d.desc||'';
+        left.append(title,desc);
+
+        const pdfUrl=d.url || (d.file&&TAG?releaseUrl(d.file):'');
+        let control;
+        if(pdfUrl){
+          const a=document.createElement('a');a.href=pdfUrl;
+          a.className='btn';a.rel='noopener noreferrer';a.target='_blank';a.textContent='Download';
+          // Cross-origin anchors cannot reliably force a PDF download; they open the publisher's PDF.
+          a.addEventListener('click',()=>sendEvent('file_download',{
+            slug:'matisse',file_name:d.file||pdfUrl.split('/').pop(),content_type:'pdf',link_url:a.href
+          }));
+          control=a;
+        }else{
+          const btn=document.createElement('button');btn.className='btn';btn.type='button';
+          btn.textContent='Pending';btn.disabled=true;
+          btn.setAttribute('aria-label',`${d.label} — awaiting approved PDF`);
+          control=btn;
+        }
+        row.append(left,control);list.appendChild(row);
+      });
+    })();
+
+    (function initYouTube(){
+      if(!YT_EMBED)return;
+      try{
+        const u=new URL(YT_EMBED,location.href);
+        if(u.protocol!=='https:' || !['www.youtube.com','www.youtube-nocookie.com','youtube.com'].includes(u.hostname)
+           || !u.pathname.startsWith('/embed/'))return;
+        const defaults={autoplay:'0',controls:'1',modestbranding:'1',rel:'0',playsinline:'1'};
+        for(const [k,v] of Object.entries(defaults))if(!u.searchParams.has(k))u.searchParams.set(k,v);
+        const iframe=document.getElementById('yt');iframe.src=u.toString();iframe.hidden=false;
+        document.getElementById('videoFallback').hidden=true;
+      }catch(_){}
+    })();
+
+    (function qrScanBoot(){
+      const q=new URLSearchParams(location.search);
+      const utms={};
+      ['utm_source','utm_medium','utm_campaign','utm_content','utm_term'].forEach(k=>{
+        const v=q.get(k);if(v)utms[k]=v;
+      });
+      // A normal page load is not necessarily a QR scan.
+      let sent=false;
+      window.__reportQrLanding=()=>{
+        if(sent||q.get('utm_source')!=='qr'||!hasConsent()||!isMeasurementConfigured())return;
+        sent=true;
+        sendEvent('qr_scan',{slug:'matisse',page_location:location.href,...utms});
+      };
+    })();
+
+    (function initRedirectBtn(){
+      const btn=document.getElementById('redirectBtn');
+      btn.href=withUTMs(btn.href);
+      btn.addEventListener('click',()=>sendEvent('redirect_click',{slug:'matisse',link_url:btn.href}));
+    })();
+
+    document.addEventListener('click',e=>{
+      const a=e.target.closest('a[href]');if(!a)return;
+      if(isOutbound(a.href))sendEvent('click_outbound',{link_url:a.href,link_text:(a.textContent||'').trim().slice(0,120)});
+    });
+  </script>
+</body>
+</html>
